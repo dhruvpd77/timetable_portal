@@ -1,0 +1,12 @@
+{% extends "core/base_logged_in.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Send Attendance Sheet on WhatsApp</h2>
+  <p>Click the button below to open WhatsApp and share the attendance report link:</p>
+  <a href="{{ whatsapp_url }}" target="_blank" class="btn btn-success">Open WhatsApp</a>
+
+  <p>Or <a href="{{ file_url }}" target="_blank">download the attendance report here</a>.</p>
+  <p><a href="{% url 'attendance_sheet_manager' %}">Go back</a></p>
+</div>
+{% endblock %}

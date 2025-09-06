@@ -1,0 +1,157 @@
+{% extends "core/base_logged_in.html" %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+            <h3 class="mb-0">✏️ Edit Faculty Preferred Slots</h3>
+        </div>
+
+        <div class="card-body">
+            <form method="post" id="preferredSlotsForm">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="{{ form.faculty.id_for_label }}" class="form-label">
+                            <i class="fas fa-user"></i> Faculty
+                        </label>
+                        {{ form.faculty }}
+                        {% if form.faculty.errors %}
+                            <div class="text-danger">{{ form.faculty.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.batch.id_for_label }}" class="form-label">
+                            <i class="fas fa-users"></i> Batch
+                        </label>
+                        {{ form.batch }}
+                        {% if form.batch.errors %}
+                            <div class="text-danger">{{ form.batch.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="fas fa-clock"></i> Preferred Time Slots
+                    </label>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Select the time slots when this faculty prefers to teach the selected batch.
+                    </div>
+                    
+                    <div id="timeSlotsContainer">
+                        <!-- Time slots will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'faculty_preferred_slots_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Update Preferred Slots
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current preferred slots from Django
+    const currentSlots = {{ preferred_slot.preferred_slots|safe }};
+    
+    // Available days and slots (this should come from your Django context)
+    const availableDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const availableSlots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-13:00', '14:00-15:00', '15:00-16:00'];
+    
+    const container = document.getElementById('timeSlotsContainer');
+    const selectedSlots = new Set();
+    
+    // Initialize with current slots
+    currentSlots.forEach(slot => {
+        selectedSlots.add(`${slot.day}|${slot.slot}`);
+    });
+    
+    // Create time slot grid
+    availableDays.forEach(day => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'mb-3';
+        dayDiv.innerHTML = `<h6 class="text-primary">${day}</h6>`;
+        
+        const slotsDiv = document.createElement('div');
+        slotsDiv.className = 'd-flex flex-wrap gap-2';
+        
+        availableSlots.forEach(slot => {
+            const slotButton = document.createElement('button');
+            slotButton.type = 'button';
+            const key = `${day}|${slot}`;
+            const isSelected = selectedSlots.has(key);
+            
+            slotButton.className = isSelected ? 'btn btn-primary btn-sm slot-btn' : 'btn btn-outline-primary btn-sm slot-btn';
+            slotButton.textContent = slot;
+            slotButton.dataset.day = day;
+            slotButton.dataset.slot = slot;
+            
+            slotButton.addEventListener('click', function() {
+                const key = `${day}|${slot}`;
+                if (selectedSlots.has(key)) {
+                    selectedSlots.delete(key);
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-primary');
+                } else {
+                    selectedSlots.add(key);
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary');
+                }
+                updateHiddenField();
+            });
+            
+            slotsDiv.appendChild(slotButton);
+        });
+        
+        dayDiv.appendChild(slotsDiv);
+        container.appendChild(dayDiv);
+    });
+    
+    function updateHiddenField() {
+        const preferredSlots = Array.from(selectedSlots).map(key => {
+            const [day, slot] = key.split('|');
+            return { day: day, slot: slot };
+        });
+        
+        // Update the hidden field
+        const hiddenField = document.querySelector('input[name="preferred_slots"]');
+        if (hiddenField) {
+            hiddenField.value = JSON.stringify(preferredSlots);
+        }
+    }
+    
+    // Initialize hidden field
+    const hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = 'preferred_slots';
+    hiddenField.value = JSON.stringify(currentSlots);
+    document.getElementById('preferredSlotsForm').appendChild(hiddenField);
+});
+</script>
+
+<style>
+.slot-btn {
+    min-width: 100px;
+    transition: all 0.3s ease;
+}
+
+.slot-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

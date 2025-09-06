@@ -1,0 +1,106 @@
+{% extends "core/base_logged_in.html" %}
+{% load static %}
+{% block title %}Report Dashboard{% endblock %}
+
+{% block content %}
+
+{# The external CSS link is REMOVED from here. It should ONLY be in base_logged_in.html #}
+
+<div class="container py-4">
+    <div class="card shadow">
+        {# Page Header - Top Section with gradient and larger text #}
+        <div class="d-flex justify-content-between align-items-center mb-4 page-header-compact">
+            <h3>📊 Report Dashboard</h3>
+            {# Assuming a back button to department time settings is relevant here #}
+            <a href="{% url 'department_time_settings' %}" class="btn btn-outline-secondary">← Back to Time Settings</a>
+        </div>
+
+        <div class="card-body">
+            <h5 class="text-center mb-5">Explore Your Timetable Insights</h5>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4"> {# Responsive grid for report cards #}
+                {# Combined Timetable Card #}
+                 <div class="col">
+                    <a href="{% url 'combined_timetable' %}" class="report-card-link">
+                        <div class="report-card shadow-sm">
+                            <div class="icon-wrapper bg-primary-light">
+                                <i class="fas fa-calendar-alt"></i> {# Font Awesome icon #}
+                            </div>
+                            <h6 class="card-title">Combined Timetable</h6>
+                            <p class="card-text">View the complete, combined timetable for all batches and faculty.</p>
+                        </div>
+                    </a>
+                </div> 
+
+                {# Batch Timetable Card #}
+                <div class="col">
+                    <a href="{% url 'batch_timetable' %}" class="report-card-link">
+                        <div class="report-card shadow-sm">
+                            <div class="icon-wrapper bg-success-light">
+                                <i class="fas fa-users"></i> {# Font Awesome icon #}
+                            </div>
+                            <h6 class="card-title">Batch Timetable</h6>
+                            <p class="card-text">Generate and view timetables specific to individual batches.</p>
+                        </div>
+                    </a>
+                </div>
+
+                 {# Faculty Availability Card #}
+                <div class="col">
+                    <a href="{% url 'faculty_availability' %}" class="report-card-link">
+                        <div class="report-card shadow-sm">
+                            <div class="icon-wrapper bg-info-light">
+                                <i class="fas fa-chalkboard-teacher"></i> {# Font Awesome icon #}
+                            </div>
+                            <h6 class="card-title">Faculty Availability</h6>
+                            <p class="card-text">Check faculty workload and free slots across the timetable.</p>
+                        </div>
+                    </a>
+                </div>
+
+                 {# Room/Lab Availability Card #}
+                <div class="col">
+                    <a href="{% url 'room_lab_availability' %}" class="report-card-link">
+                        <div class="report-card shadow-sm">
+                            <div class="icon-wrapper bg-warning-light">
+                                <i class="fas fa-building"></i> {# Font Awesome icon #}
+                            </div>
+                            <h6 class="card-title">Room/Lab Availability</h6>
+                            <p class="card-text">See the usage and availability of classrooms and labs.</p>
+                        </div>
+                    </a>
+                </div>
+
+                {% comment %} {# Conflict Report Card #}
+                <div class="col">
+                    <a href="{% url 'conflict_report' %}" class="report-card-link">
+                        <div class="report-card shadow-sm">
+                            <div class="icon-wrapper bg-danger-light">
+                                <i class="fas fa-exclamation-triangle"></i> {# Font Awesome icon #}
+                            </div>
+                            <h6 class="card-title">Conflict Report</h6>
+                            <p class="card-text">Identify and resolve scheduling conflicts in the timetable.</p>
+                        </div>
+                    </a>
+                </div>
+
+                {# Analytics Card #}
+                <div class="col">
+                    <a href="{% url 'analytics' %}" class="report-card-link">
+                        <div class="report-card shadow-sm">
+                            <div class="icon-wrapper bg-secondary-light">
+                                <i class="fas fa-chart-line"></i> {# Font Awesome icon #}
+                            </div>
+                            <h6 class="card-title">Analytics</h6>
+                            <p class="card-text">Gain insights from timetable data with visual analytics.</p>
+                        </div>
+                    </a>
+                </div> {% endcomment %}  
+
+                
+
+            </div> {# End row #}
+        </div> {# End card-body #}
+    </div> {# End card #}
+</div> {# End container #}
+{% endblock %}

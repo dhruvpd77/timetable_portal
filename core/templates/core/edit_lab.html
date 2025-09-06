@@ -1,0 +1,32 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Edit Lab{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+<div class="container py-4"> {# Added container and py-4 for consistent padding #}
+    <div class="card shadow"> {# Removed p-4 as padding is handled by card styling #}
+        <h3>Edit Lab - {{ lab.name }}</h3> {# Changed h4 to h3 for consistent heading style #}
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group"> {# Wrap form fields in form-group for consistent styling #}
+                        <label for="{{ form.name.id_for_label }}">Lab Name</label>
+                        {{ form.name }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group"> {# Wrap form fields in form-group for consistent styling #}
+                        <label for="{{ form.capacity.id_for_label }}">Capacity</label>
+                        {{ form.capacity }}
+                    </div>
+                </div>
+            </div>
+            {# Removed <br> as form-group provides sufficient spacing #}
+            <button type="submit" class="btn btn-primary">Update Lab</button>
+            <a href="{% url 'lab_management' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

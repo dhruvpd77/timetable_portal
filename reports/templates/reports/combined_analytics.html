@@ -1,0 +1,154 @@
+{% extends 'core/base_logged_in.html' %}
+{% load dict_filters %}
+{% block content %}
+<div class="container mt-4">
+
+  <h3 class="text-primary mb-3">📊 Combined Analytics</h3>
+
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-4">
+      <label>Select Departments (multiple)</label>
+      <select name="departments" class="form-select" multiple onchange="this.form.submit()">
+        {% for dept in departments %}
+          <option value="{{ dept }}" {% if dept in selected_departments %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label>Select Timetables (multiple)</label>
+      <select name="timetables" class="form-select" multiple>
+        {% for tt in timetables_for_departments %}
+          <option value="{{ tt }}" {% if tt in selected_timetables %}selected{% endif %}>{{ tt }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">Show Analytics</button>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-warning">{{ error }}</div>
+  {% elif matrix %}
+    <h4>Faculty-Subject Matrix</h4>
+    <p>Showing combined analytics for departments: {{ selected_departments|join:", " }}</p>
+
+    {# Faculty-Subject Table for ALL combined #}
+    {% with all_matrix=matrix.ALL %}
+    <table class="table table-bordered table-hover mb-4">
+      <thead>
+        <tr>
+          <th>Subject</th>
+          {% for fac in all_matrix.faculties %}
+            <th>{{ fac }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for subj, fac_dict in all_matrix.subjects.items %}
+        <tr>
+          <td>{{ subj }}</td>
+          {% for fac in all_matrix.faculties %}
+            <td>{{ fac_dict|get_item:fac }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endwith %}
+
+    <h4>Faculty Total Lectures</h4>
+    <canvas id="facultyTotalLecturesChart" width="800" height="400"></canvas>
+
+    <h4>Slot Occupancy</h4>
+    <canvas id="slotOccupancyChart" width="800" height="400"></canvas>
+
+    <div class="mt-4">
+      <a href="{% url 'combined_analytics_download' %}?{% for d in selected_departments %}departments={{ d }}&{% endfor %}{% for t in selected_timetables %}timetables={{ t }}&{% endfor %}format=excel"
+         class="btn btn-success me-2" target="_blank"><i class="fas fa-file-excel"></i> Download Excel</a>
+      <a href="{% url 'combined_analytics_download' %}?{% for d in selected_departments %}departments={{ d }}&{% endfor %}{% for t in selected_timetables %}timetables={{ t }}&{% endfor %}format=pdf"
+         class="btn btn-danger" target="_blank"><i class="fas fa-file-pdf"></i> Download PDF</a>
+    </div>
+
+  {% else %}
+    <div class="alert alert-info">Select departments and timetables to view analytics.</div>
+  {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  {% if total_lectures_keys and total_lectures_values %}
+    // Parse JSON strings passed from view context
+    const facultyLabels = {{ total_lectures_keys|safe }};
+    const facultyData = {{ total_lectures_values|safe }};
+
+    const ctx1 = document.getElementById('facultyTotalLecturesChart').getContext('2d');
+    new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: facultyLabels,
+        datasets: [{
+          label: 'Total Lectures',
+          data: facultyData,
+          backgroundColor: 'rgba(79,129,189,0.7)',
+          borderColor: 'rgba(79,129,189,1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  {% endif %}
+
+  {% if slot_data %}
+    const slotDataRaw = {{ slot_data|safe }};
+    // Extract unique days and slots
+    const days = [...new Set(slotDataRaw.map(item => item.day))];
+    const slots = [...new Set(slotDataRaw.map(item => item.slot))];
+
+    // Prepare datasets for grouped stacked bar chart
+    const datasets = slots.map(slot => {
+      return {
+        label: slot,
+        data: days.map(day => {
+          const record = slotDataRaw.find(d => d.day === day && d.slot === slot);
+          return record ? record.count : 0;
+        }),
+        backgroundColor: 'rgba(79,129,189,0.6)',
+        borderColor: 'rgba(79,129,189,1)',
+        borderWidth: 1
+      };
+    });
+
+    const ctx2 = document.getElementById('slotOccupancyChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { stacked: true },
+          y: { stacked: true, beginAtZero: true }
+        }
+      }
+    });
+  {% endif %}
+</script>
+{% endblock %}

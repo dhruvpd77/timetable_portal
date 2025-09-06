@@ -1,0 +1,41 @@
+{% load dict_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Combined Timetable PDF</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 12px; margin: 10px; }
+      h2, h3 { text-align: center; color: #1f497d; }
+      table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+      th { background-color: #4F81BD; color: white; padding: 6px; border: 1px solid #ddd; text-align: center; }
+      td { border: 1px solid #ddd; padding: 6px; white-space: pre-wrap; vertical-align: top; text-align: center; }
+      tr:nth-child(even) { background-color: #e9f0fb; }
+    </style>
+</head>
+<body>
+  <h2>{{ college }}</h2>
+  <h3>Departments: {{ department }}</h3>
+  <h3>Timetables: {{ timetable_names|join:", " }}</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Day / Batch</th>
+        {% for slot in slots %}
+          <th>{{ slot }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in grid %}
+        <tr>
+          <td><b>{{ row.day }} / {{ row.batch }}</b></td>
+          {% for slot in slots %}
+            <td>{% autoescape off %}{{ row|get_item:slot }}{% endautoescape %}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

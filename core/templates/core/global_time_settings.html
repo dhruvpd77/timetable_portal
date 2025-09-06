@@ -1,0 +1,79 @@
+{% extends 'core/base.html' %}
+{% block title %}Global Time Settings{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3>🕒 Global Time Settings</h3>
+  <a href="{% url 'admin_setup' %}" class="btn btn-outline-secondary">🔙 Back to Setup</a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-primary text-white">➕ Add Global Day</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="input-group">
+            <input type="text" name="day_name" class="form-control" placeholder="e.g. Monday" required>
+            <button type="submit" name="add_day" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for day in days %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ day.name }}
+            <form method="post" style="margin: 0;">
+              {% csrf_token %}
+              <input type="hidden" name="delete_day" value="{{ day.id }}">
+              <button class="btn btn-sm btn-danger" onclick="return confirm('Delete day?')">Delete</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-success text-white">➕ Add Global Time Slot</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row">
+            <div class="col">
+              <input type="time" name="start_time" class="form-control" required>
+            </div>
+            <div class="col">
+              <input type="time" name="end_time" class="form-control" required>
+            </div>
+            <div class="col-auto">
+              <button type="submit" name="add_slot" class="btn btn-success">Add</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for slot in slots %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ slot.start_time|time:"H:i" }} – {{ slot.end_time|time:"H:i" }}
+            <form method="post" style="margin: 0;">
+              {% csrf_token %}
+              <input type="hidden" name="delete_slot" value="{{ slot.id }}">
+              <button class="btn btn-sm btn-danger" onclick="return confirm('Delete slot?')">Delete</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

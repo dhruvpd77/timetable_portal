@@ -1,0 +1,57 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block content %}
+
+{# Link to your external CSS file #}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<div class="container py-4">
+    <div class="card shadow">
+        <h3>Add Course Specification</h3>
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            {# Django form fields are rendered here, they will automatically get <p> tags #}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success">Add</button>
+        </form>
+
+        <hr>
+
+        <h5>Existing Specifications</h5>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Hours</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in specs %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.subject_name }}</td>
+                        <td>{{ item.subject_type }}</td>
+                        <td>{{ item.total_hours }}</td>
+                        <td>
+                            <a href="{% url 'edit_course_specification' item.id %}" class="btn btn-sm btn-primary">Edit</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'delete_course_specification' item.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this course specification? This action cannot be undone.');">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No course specifications found. Please add new specifications using the form above.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

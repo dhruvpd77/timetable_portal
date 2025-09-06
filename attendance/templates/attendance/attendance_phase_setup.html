@@ -1,0 +1,68 @@
+{% extends 'core/base_logged_in.html' %}
+{% load attendance_filters %}
+{% block content %}
+<div class="container mt-4">
+  <h3>📅 Setup Attendance Phases</h3>
+  <form method="post">{% csrf_token %}
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label>Batch</label>
+        <select name="batch_id" class="form-select" required>
+          <option value="">-- Select Batch --</option>
+          {% for b in batches %}
+            <option value="{{ b.id }}" {% if b.id|stringformat:"s" == selected_batch_id %}selected{% endif %}>
+              {{ b.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label>Timetable</label>
+        <select name="timetable_id" class="form-select" required>
+          {% for t in timetables %}
+            <option value="{{ t.id }}" {% if existing and t.id == existing.timetable.id %}selected{% endif %}>
+              {{ t.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      {% for phase in "1234" %}
+      <div class="col-md-6 mb-3">
+        <label>T{{ phase }} Start:</label>
+        <input type="date" name="t{{ phase }}_start" class="form-control"
+               value="{{ existing|get_attr:'t'|add:phase|add:'_start'|date:'Y-m-d' }}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label>T{{ phase }} End:</label>
+        <input type="date" name="t{{ phase }}_end" class="form-control"
+               value="{{ existing|get_attr:'t'|add:phase|add:'_end'|date:'Y-m-d' }}">
+      </div>
+      {% endfor %}
+    </div>
+    <button class="btn btn-success" name="save_dates" type="submit">💾 Save Phase Dates</button>
+  </form>
+
+  {% if existing %}
+  <hr>
+  <form method="get">
+    <input type="hidden" name="batch" value="{{ selected_batch_id }}">
+    <label>Select Phase</label>
+    <select name="phase" class="form-select mb-3" onchange="this.form.submit()">
+      <option value="">-- Select Phase --</option>
+      {% for p in "1234" %}
+        <option value="{{ p }}" {% if p == selected_phase %}selected{% endif %}>T{{ p }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if selected_phase %}
+    <a class="btn btn-outline-primary"
+       href="{% url 'download_attendance_excel' selected_batch_id selected_phase %}">
+       📥 Download Attendance Excel
+    </a>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

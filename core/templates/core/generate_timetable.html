@@ -1,0 +1,87 @@
+{% extends "core/base_logged_in.html" %}
+{% load static %}
+{% load custom_filters %}
+{% load unique_filter %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<div class="container py-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📅 Department Timetable</h3>
+
+        </div>
+
+        <form method="post" class="mb-4 text-center">
+            {% csrf_token %}
+            <button name="generate" type="submit" class="btn btn-primary large-button">
+                Generate Timetable
+            </button>
+        </form>
+
+        {% if timetable_by_day_slot %}
+            <div class="table-responsive">
+                <table class="table table-bordered timetable-table align-middle text-center">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Day</th>
+                            <th>Batch</th>
+                            {% for slot in slots %}
+                                <th>{{ slot }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day, data in timetable_by_day_slot.items %}
+                            {% for batch in data.batches %}
+                                <tr>
+                                    {% if forloop.first %}
+                                        <td rowspan="{{ data.batches|length }}" class="day-cell">
+                                            <strong>{{ day }}</strong>
+                                        </td>
+                                    {% endif %}
+                                    <td class="batch-cell"><strong>{{ batch }}</strong></td>
+
+                                    {% for slot in slots %}
+                                        <td class="slot-cell">
+                                            {% with batch_data=data.slot_data|get_item:batch %}
+                                                {% with slot_data=batch_data|get_item:slot %}
+                                                    {% if slot_data %}
+                                                        {% for item in slot_data %}
+                                                            <div class="timetable-item">
+                                                                <strong>{{ item.subject }}</strong><br>
+                                                                <span class="text-muted">{{ item.faculty }}</span><br>
+                                                                <span class="text-info">{{ item.room_or_lab }}</span>
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="text-muted empty-slot">–</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endwith %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <form method="post" class="mt-4 text-center">
+                {% csrf_token %}
+                <input type="text" name="timetable_name" placeholder="Enter timetable name"
+                       class="form-control d-inline-block w-auto me-2 timetable-name-input" required>
+                <button name="save" type="submit" class="btn btn-success large-button">
+                    Save Timetable
+                </button>
+            </form>
+        {% else %}
+            <p class="text-center text-muted py-5">
+                No timetable generated yet. Click "Generate Timetable" to create one.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

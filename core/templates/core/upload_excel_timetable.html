@@ -1,0 +1,67 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fa fa-upload"></i> Upload Timetable (Excel)</h4>
+        </div>
+        <div class="card-body">
+
+            <!-- Instructions Section -->
+            <div class="alert alert-info">
+                <h5 class="mb-2"><i class="fa fa-info-circle"></i> Instructions for Excel Format</h5>
+
+                <ul>
+                    <li class="text-dark font-weight-bold">
+                        <strong>Time Slot Format:</strong>
+                        <br>
+                        <span class="text-dark">Each timing cell should be written exactly like:</span><br>
+                        <span class="mb-2">8:45 to 9:45</span>
+                        <span class="mb-2">9:45 to 10:45</span>
+                        <span class="mb-2">11:30 to 12:30</span>
+                        <span class="mb-2">12:30 to 13:30</span>
+                        <span class="mb-2">13:45 to 14:45</span>
+                    </li>
+                    <li>
+                        <strong>Assignment (Entry) Format:</strong>
+                        <br>
+                        For each cell (for a batch/time/slot), use:
+                        <br>
+                        <span class="mb-2">FacultyName-SubjectName-RoomOrLab</span>
+                        <br>
+                        <b>Examples:</b>
+                        <ul>
+                            <li><span class="mb-2">MGV-DM-302</span> <small>(Faculty: MGV, Subject: DM, Room: 302)</small></li>
+                            <li><span class="mb-2">KMS-PY_2-406-2(L)</span> <small>(Faculty: KMS, Subject: PY_2, Lab: 406-2, mark lab with (L))</small></li>
+                        </ul>
+                        <span class="text-muted">Use <b>(L)</b> after Room/Lab code to indicate a Lab. Room and Lab naming should match database entries exactly.</span>
+                    </li>
+                    <li>
+                        <strong>Batches:</strong> Your header (top row after "Day" and "Timing") should include batch names like
+                        <span class="mb-2">A1</span>, <span class="mb-2">A2</span>, <span class="mb-2">B1</span>, <span class="mb-2">B2</span> etc.
+                        <br>
+                        <span class="text-muted">Only columns with letters as prefix and digits as suffix (e.g. <b>A1, B3, C12</b>) will be detected as batches.</span>
+                    </li>
+                </ul>
+                
+
+            <!-- Upload Form -->
+            <form method="post" enctype="multipart/form-data" class="mt-3">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                </div>
+                <div class="form-group">
+                    {{ form.file.label_tag }}
+                    {{ form.file }}
+                </div>
+                <button type="submit" class="btn btn-primary btn-block mt-2">
+                    <i class="fa fa-upload"></i> Upload Timetable
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% load dict_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ timetable_names|join:", " }} - Combined Faculty Availability - PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            margin: 10px;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #1f497d;
+            margin-bottom: 0.4em;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+        th {
+            background-color: #4F81BD;
+            color: white;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            vertical-align: top;
+            white-space: pre-wrap; /* preserve line breaks */
+            text-align: center;
+            font-size: 12px;
+        }
+        tr:nth-child(even) {
+            background-color: #e9f0fb;
+        }
+    </style>
+</head>
+<body>
+    <h2>{{ college }}</h2>
+    <h3>Departments: {{ department }}</h3>
+    <h3>Combined Faculty Availability for Timetables: {{ timetable_names|join:", " }}</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                {% for slot in slots %}
+                    <th>{{ slot }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in grid %}
+                <tr>
+                    <td><b>{{ row.day }}</b></td>
+                    {% for slot in slots %}
+                        <td>
+                            {% autoescape off %}
+                                {{ row|get_item:slot }}
+                            {% endautoescape %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

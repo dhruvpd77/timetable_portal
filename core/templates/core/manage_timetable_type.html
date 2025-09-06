@@ -1,0 +1,80 @@
+{% extends 'core/base_logged_in.html' %}
+
+{% block title %}⚙️ Timetable Type Settings{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h3 class="mb-3 text-primary">⚙️ Timetable Type Configuration</h3>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Select Slot Type</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.slot_type.id_for_label }}" class="form-label">
+                                <strong>Choose how your timetable slots should be organized:</strong>
+                            </label>
+                            {{ form.slot_type }}
+                            {% if form.slot_type.errors %}
+                                <div class="text-danger">
+                                    {{ form.slot_type.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">ℹ️ Current Setting</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Current Type:</strong><br>
+                        <span class="badge bg-success fs-6">{{ timetable_type.get_slot_type_display }}</span>
+                    </p>
+                    <hr>
+                    <p class="mb-2">
+                        <strong>Last Updated:</strong><br>
+                        <small class="text-muted">{{ timetable_type.updated_at|date:"M d, Y H:i" }}</small>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">📋 Slot Type Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-success">✅ 1 Hour Slot</h6>
+                        <small class="text-muted">
+                            • Standard 1-hour time slots<br>
+                            • Labs get 2 consecutive hours<br>
+                            • Theory lectures get 1 hour each
+                        </small>
+                    </div>
+                    <div>
+                        <h6 class="text-info">🔄 2 Hour Pair Slot</h6>
+                        <small class="text-muted">
+                            • Labs get 2-hour slots<br>
+                            • Theory lectures get 2-hour slots<br>
+                            • Same subject sessions grouped together<br>
+                            • Fallback to 1-hour for worst cases
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

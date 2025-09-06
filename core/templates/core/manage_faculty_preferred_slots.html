@@ -1,0 +1,80 @@
+{% extends 'core/base_logged_in.html' %}
+
+{% block title %}🎯 Faculty Preferred Slots{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h3 class="mb-3 text-primary">🎯 Preferred Slots for Faculty</h3>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Select Faculty</label>
+                <select name="faculty" class="form-select" required>
+                    <option value="">-- Select Faculty --</option>
+                    {% for fac in faculties %}
+                        <option value="{{ fac.id }}">{{ fac.short_name }} - {{ fac.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Select Batch</label>
+                <select name="batch" class="form-select" required>
+                    <option value="">-- Select Batch --</option>
+                    {% for batch in batches %}
+                        <option value="{{ batch.id }}">{{ batch.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Select Preferred Time Slots (Day | Slot)</label>
+                <select name="slots" class="form-select" multiple size="10" required>
+                    {% for ds in all_day_slots %}
+                        <option value="{{ ds }}">{{ ds }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button class="btn btn-primary" type="submit">➕ Add Preferred Slots</button>
+        </div>
+    </form>
+
+    <hr>
+
+    <h4>🗂️ Existing Preferred Slots</h4>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Faculty</th>
+                <th>Batch</th>
+                <th>Preferred Slots</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pref in preferred_slots %}
+                <tr>
+                    <td><strong>{{ pref.faculty.short_name }}</strong><br>
+                        <small class="text-muted">{{ pref.faculty.full_name }}</small>
+                    </td>
+                    <td><span class="badge bg-info">{{ pref.batch.name }}</span></td>
+                    <td>
+                        {% for item in pref.preferred_slots %}
+                            <span class="badge bg-success me-1 mb-1">{{ item.day }} | {{ item.slot }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <a href="?delete={{ pref.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4">No preferred slots yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

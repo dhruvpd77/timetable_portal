@@ -1,0 +1,80 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Timetable PDF</title>
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; margin: 20px; }
+        h2, h3 { text-align: center; margin: 0; padding: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 5px; text-align: center; vertical-align: middle; word-wrap: break-word; }
+        th { background-color: #d9d9d9; font-weight: bold; }
+        .recess-row td { background-color: #ffff99; font-weight: bold; text-align: center; }
+        .day-merge { font-weight: bold; background-color: #f0f0f0; writing-mode: vertical-rl; transform: rotate(180deg); }
+        .faculty-section { margin-top: 30px; }
+        .faculty-section h3 { margin-top: 40px; margin-bottom: 10px; text-align: center; }
+        .faculty-table { width: 70%; margin: 0 auto; }
+        .faculty-table th, .faculty-table td { border: 1px solid #000; padding: 6px; text-align: center; }
+        .faculty-table th { background-color: #e4e4e4; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h2>L J INSTITUTES OF ENGINEERING & TECHNOLOGY, AHMEDABAD</h2>
+<h3>FACULTY TIMETABLE FOR SEMESTER - IV</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Day</th>
+            <th>Slot</th>
+            {% for batch in batches %}
+                <th>{{ batch }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for day in days_order %}
+            {% for slot in slots_order %}
+                {% if forloop.counter == 3 %}
+                <tr class="recess-row">
+                    <td colspan="{{ 2|add:batches|length }}">RECESS</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    {% if forloop.first %}<td class="day-merge" rowspan="{{ slots_order|length }}">{{ day }}</td>{% endif %}
+                    <td>{{ slot }}</td>
+                    {% for batch in batches %}
+                        <td>{{ grid|get_item:day|get_item:slot|get_item:batch|default:"-" }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="faculty-section">
+    <h3>FACULTY INITIAL WITH FULL NAME AND THEIR TEACHING SUBJECTS</h3>
+    <table class="faculty-table">
+        <thead>
+            <tr>
+                <th>Sr. No</th>
+                <th>Faculty Name</th>
+                <th>Subject Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for faculty, subject in faculty_subjects %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ faculty }}</td>
+                <td>{{ subject }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

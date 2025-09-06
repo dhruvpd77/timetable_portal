@@ -1,0 +1,23 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Edit Batch{% endblock %}
+{% block content %}
+
+{# Link to your external CSS file #}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<div class="container py-4">
+    <div class="card shadow">
+        <h3>Edit Batch - {{ batch.name }}</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.name.id_for_label }}">Batch Name</label>
+                {{ form.name }}
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{% url 'batch_management' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'core/base_logged_in.html' %}
+{% load custom_filters %}
+{% block content %}
+<h3>Conflict/Clash Report</h3>
+{% if error %}
+  <div class="alert alert-warning">{{ error }}</div>
+{% endif %}
+<ul>
+{% for conflict in conflicts %}
+  <li style="color:red">{{ conflict }}</li>
+{% empty %}
+  <li style="color:green">No Conflicts Detected!</li>
+{% endfor %}
+</ul>
+{% endblock %}

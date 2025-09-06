@@ -1,0 +1,77 @@
+{% extends 'core/base_logged_in.html' %}
+{% load custom_filters %}
+{% block content %}
+<div class="container mt-4">
+  <h3 class="text-primary mb-3">👨‍🏫 Faculty Timetable Report</h3>
+  <a href="{% url 'report_dashboard' %}" class="btn btn-outline-secondary mb-3">← Back to Dashboard</a>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+      <label class="form-label">Timetable:</label>
+      <select name="timetable" class="form-select" onchange="this.form.submit()">
+        <option value="">--Select--</option>
+        {% for tt in timetables %}
+          <option value="{{ tt }}" {% if selected_tt == tt %}selected{% endif %}>{{ tt }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Faculty:</label>
+      <select name="faculty" class="form-select" onchange="this.form.submit()">
+        <option value="">--Select--</option>
+        {% for fac in faculties %}
+          <option value="{{ fac }}" {% if selected_faculty == fac %}selected{% endif %}>{{ fac }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 align-self-end">
+      <button type="submit" class="btn btn-primary btn-sm">Show</button>
+    </div>
+  </form>
+
+  {% if report_grid and day_batches %}
+    <h5 class="mt-4">Timetable for <b>{{ selected_faculty }}</b></h5>
+    <div class="table-responsive mt-3">
+      <table class="table table-bordered text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Day</th>
+            <th>Batch</th>
+            {% for slot in slots_order %}
+              <th>{{ slot }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for day in days_order %}
+            {% if day_batches|get_item:day %}
+              {% for batch in day_batches|get_item:day %}
+                <tr>
+                  {% if forloop.first %}
+                    <td rowspan="{{ day_batches|get_item:day|length }}"><b>{{ day }}</b></td>
+                  {% endif %}
+                  <td><b>{{ batch }}</b></td>
+                  {% for slot in slots_order %}
+                    {% with cell=report_grid|get_item:day|get_item:slot|get_item:batch %}
+                      <td>
+                        {% if cell and cell.subject %}
+                          <div><b>{{ cell.subject }}</b></div>
+                          <small>{{ cell.room_lab }}</small>
+                        {% else %}
+                          <span style="color:#ccc">–</span>
+                        {% endif %}
+                      </td>
+                    {% endwith %}
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% elif selected_tt and selected_faculty %}
+    <div class="alert alert-warning mt-4">No lectures found for this faculty in the selected timetable.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Faculty Load Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h2 { color: #1b294a; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #888; padding: 6px; }
+        th { background: #eef2f6; }
+    </style>
+</head>
+<body>
+    <h2>Faculty Load Report ({{ timetable_name }})</h2>
+    {% if faculty_chart_img %}
+        <img src="data:image/png;base64,{{ faculty_chart_img }}" style="max-width:700px;">
+    {% endif %}
+    <table>
+        <thead>
+            <tr>
+                <th>Faculty</th>
+                <th>Periods</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f, c in analytics.faculty_count.items %}
+            <tr><td>{{ f }}</td><td>{{ c }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

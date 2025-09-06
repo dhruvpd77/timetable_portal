@@ -1,0 +1,78 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}View Past Timetable{% endblock %}
+
+{% load custom_filters %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+<div class="card shadow p-4">
+  <h4>🗂️ View Past Timetable</h4>
+  <form method="get" class="mb-4">
+    <label for="tt_id" class="form-label">Select Timetable:</label>
+    <select name="tt_id" id="tt_id" class="form-select" onchange="this.form.submit()">
+      <option value="">-- Select Timetable --</option>
+      {% for tt in timetables %}
+        <option value="{{ tt.id }}" {% if selected_tt and tt.id == selected_tt.id %}selected{% endif %}>
+          {{ tt.name }} ({{ tt.created_at|date:'d M Y H:i' }})
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if selected_tt %}
+    {% if days_order and slots_order and batches %}
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center">
+          <thead>
+            <tr>
+              <th rowspan="2">Day</th>
+              <th rowspan="2">Batch</th>
+              <th colspan="{{ slots_order|length }}">Time Slots</th>
+            </tr>
+            <tr>
+              {% for slot in slots_order %}
+                <th>{{ slot }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for day in days_order %}
+              {% for batch in batches %}
+                <tr>
+                  {% if forloop.first %}
+                    <td rowspan="{{ batches|length }}">{{ day }}</td>
+                  {% endif %}
+                  <td><strong>{{ batch }}</strong></td>
+                  {% for slot in slots_order %}
+                    <td>
+                      {{ grid|get_item:day|get_item:slot|get_item:batch|default:"-" }}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="my-3 d-flex gap-2">
+      <a href="{% url 'edit_timetable' selected_tt.id %}" class="btn btn-warning mb-3">✏️ Edit This Timetable</a>
+      </div>
+      
+      <div class="my-3 d-flex gap-2">
+        <a href="?tt_id={{ selected_tt.id }}&download=facultywise" class="btn btn-outline-primary">
+    👩‍🏫 Download Faculty-Wise Timetables
+</a>
+<a  href="?tt_id={{ selected_tt.id }}&download=facultywisepdf">📄 Download Faculty-wise Timetable (PDF)</a>
+
+
+        <a href="?tt_id={{ selected_tt.id }}&download=excel" class="btn btn-outline-success">⬇️ Download as Excel</a>
+        <a href="?tt_id={{ selected_tt.id }}&download=csv" class="btn btn-outline-secondary">⬇️ Download as CSV</a>
+        <a href="?tt_id={{ selected_tt.id }}&download=pdf" class="btn btn-outline-danger">⬇️ Download as PDF</a>
+      </div>
+    {% else %}
+      <div class="alert alert-warning">No data to display for this timetable.</div>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

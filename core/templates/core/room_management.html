@@ -1,0 +1,57 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Room Management{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+<div class="card shadow p-4">
+  <h4>Room Management</h4>
+  <form method="post" class="row g-3">
+    {% csrf_token %}
+    <div class="col-md-6">
+      {{ form.name.label_tag }} {{ form.name }}
+    </div>
+    <div class="col-md-4">
+      {{ form.capacity.label_tag }} {{ form.capacity }}
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="submit" class="btn btn-success">Add Room</button>
+    </div>
+  </form>
+
+  <hr>
+  <h5>Existing Rooms</h5>
+  {% if rooms %}
+    <table class="table table-striped mt-3">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Room Name</th>
+          <th>Capacity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for room in rooms %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ room.name }}</td>
+            <td>{{ room.capacity }}</td>
+            <td>
+              <a href="{% url 'edit_room' room.id %}" class="btn btn-sm btn-primary">Edit</a>
+              <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="delete_room" value="{{ room.id }}">
+                <button type="submit" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Delete room {{ room.name }}?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No rooms added yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

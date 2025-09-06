@@ -1,0 +1,83 @@
+{% extends 'core/base_logged_in.html' %}
+{% block content %}
+<div class="container mt-4">
+
+  <h3 class="text-primary mb-4">🎡 Spin The Wheel - Select Faculty</h3>
+
+  <form method="get" class="row g-3 align-items-center mb-4">
+    <div class="col-md-4">
+      <label>Select Departments (multiple)</label>
+      <select name="departments" class="form-select" multiple onchange="this.form.submit()">
+        {% for dept in departments %}
+          <option value="{{ dept }}" {% if dept in selected_departments %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label>Select Subject</label>
+      <select name="subject" class="form-select" onchange="this.form.submit()">
+        <option value="">-- Select Subject --</option>
+        {% for subj in subjects %}
+          <option value="{{ subj }}" {% if subj == selected_subject %}selected{% endif %}>{{ subj }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  {% if faculties %}
+  <div class="text-center">
+    <h5>Faculty on the Wheel:</h5>
+    <ul id="facultyList" style="list-style:none; padding: 0;">
+      {% for fac in faculties %}
+        <li>{{ fac }}</li>
+      {% endfor %}
+    </ul>
+
+    <button id="spinButton" class="btn btn-primary mt-3">Spin the Wheel 🎡</button>
+    <h3 id="winnerAnnouncement" class="mt-4"></h3>
+  </div>
+  {% else %}
+    <p class="text-muted">Select departments and subject to load the faculty list.</p>
+  {% endif %}
+
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const spinButton = document.getElementById("spinButton");
+    const facultyList = document.getElementById("facultyList");
+    const winnerAnnouncement = document.getElementById("winnerAnnouncement");
+    if (!spinButton) return;
+
+    spinButton.addEventListener('click', function() {
+      winnerAnnouncement.textContent = "";
+      const faculties = Array.from(facultyList.children).map(li => li.textContent);
+      if (faculties.length === 0) {
+        alert("No faculty to spin.");
+        return;
+      }
+
+      spinButton.disabled = true;
+
+      // Simple random spin simulation: flash names for 7 seconds
+      let count = 0;
+      const interval = setInterval(() => {
+        const randomIndex = Math.floor(Math.random() * faculties.length);
+        winnerAnnouncement.textContent = "🎯 Selecting: " + faculties[randomIndex];
+        count++;
+        if (count >= 50) {  // ~7 seconds (50 * 140ms)
+          clearInterval(interval);
+          winnerAnnouncement.textContent = "🎉 Winner: " + faculties[randomIndex];
+          spinButton.disabled = false;
+          // Optional: Use speech synthesis to announce
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(faculties[randomIndex]);
+            window.speechSynthesis.speak(utterance);
+          }
+        }
+      }, 140);
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+<img src="{% static 'images/a.png' %}" alt="Logo" style="max-height: 22px;">
+
+{% block title %}Department Time Settings{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<h3>⏰ Department Time Configuration</h3>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-primary text-white">Select Working Days</div>
+    <div class="card-body">
+      {% for day in global_days %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="selected_days" value="{{ day.id }}"
+                 {% if day in selected_days %}checked{% endif %}>
+          <label class="form-check-label">{{ day.name }}</label>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-success text-white">Select Working Time Slots</div>
+    <div class="card-body row">
+      {% for slot in global_slots %}
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="selected_slots" value="{{ slot.id }}"
+                   {% if slot in selected_slots %}checked{% endif %}>
+            <label class="form-check-label">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</label>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card mb-4 shadow">
+    <div class="card-header bg-warning text-dark">Select Break Slots</div>
+    <div class="card-body row">
+      {% for slot in global_slots %}
+        <div class="col-md-4 mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="break_slots" value="{{ slot.id }}"
+                   {% if slot in break_slots %}checked{% endif %}>
+            <label class="form-check-label">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</label>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save Settings</button>
+</form>
+
+{% endblock %}

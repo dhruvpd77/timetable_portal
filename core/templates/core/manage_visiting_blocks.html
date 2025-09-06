@@ -1,0 +1,88 @@
+{% extends 'core/base_logged_in.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>🛑 Visiting Faculty Slot Blocker</h3>
+
+    <form method="get" class="row g-3 mt-3 mb-4">
+        <div class="col-md-4">
+            <label><b>Select Faculty (from your department)</b></label>
+            <select name="faculty" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Select Faculty --</option>
+                {% for f in faculties %}
+                    <option value="{{ f.short_name }}" {% if f.short_name == selected_faculty_name %}selected{% endif %}>{{ f.short_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if selected_faculty_name %}
+        <div class="col-md-4">
+            <label><b>Select Engaged Department</b></label>
+            <select name="engaged_department" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Select Department --</option>
+                {% for d in engaged_departments %}
+                    <option value="{{ d.id }}" {% if d.id|stringformat:"s" == selected_ext_dept_id %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        {% if selected_ext_dept_id %}
+        <div class="col-md-4">
+            <label><b>Select Timetable</b></label>
+            <select name="engaged_timetable" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Select Timetable --</option>
+                {% for tt in engaged_timetables %}
+                    <option value="{{ tt.id }}" {% if tt.id|stringformat:"s" == selected_tt_id %}selected{% endif %}>{{ tt.name }} ({{ tt.created_at|date:"d M Y" }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </form>
+
+    {% if show_slots %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="engaged_department_id" value="{{ selected_ext_dept_id }}">
+        <input type="hidden" name="engaged_timetable_id" value="{{ selected_tt_id }}">
+        <input type="hidden" name="selected_faculty_name" value="{{ selected_faculty_name }}">
+
+        <h5>Blocked Slots from Selected Timetable:</h5>
+        <table class="table table-bordered">
+            <thead><tr><th>Day</th><th>Time</th></tr></thead>
+            <tbody>
+                {% for day, time in blocked_slots %}
+                    <tr><td>{{ day }}</td><td>{{ time }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" name="block_slots" class="btn btn-danger">➕ Block These Slots</button>
+    </form>
+    {% endif %}
+
+    <hr>
+    <h4>📋 Existing Blocked Visiting Faculty Slots (Your Dept)</h4>
+    <table class="table table-striped table-bordered">
+        <thead><tr><th>Faculty</th><th>Main Dept</th><th>Blocked Slots</th><th>Action</th></tr></thead>
+        <tbody>
+            {% for b in all_blocks %}
+            <tr>
+                <td>{{ b.faculty.short_name }}</td>
+                <td>{{ b.main_department.name }}</td>
+                <td>
+                    {% for day_time in b.get_blocked_slots %}
+                        {{ day_time.0 }} {{ day_time.1 }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_block_id" value="{{ b.id }}">
+                        <button class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No visiting faculty blocks yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

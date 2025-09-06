@@ -1,0 +1,31 @@
+{% extends "core/base_logged_in.html" %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Generated Timetable</h2>
+    <table class="table table-bordered text-center">
+        <thead class="thead-dark">
+            <tr>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Batch</th>
+                <th>Subject</th>
+                <th>Faculty</th>
+                <th>Room / Lab</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in timetable %}
+            <tr>
+                <td>{{ row.Day }}</td>
+                <td>{{ row.Time }}</td>
+                <td>{{ row.Batch }}</td>
+                <td>{{ row.Subject }}</td>
+                <td>{{ row.Faculty }}</td>
+                <td>{{ row.Room/Lab }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

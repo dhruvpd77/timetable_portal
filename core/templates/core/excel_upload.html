@@ -1,0 +1,100 @@
+{% extends "core/base_logged_in.html" %}
+{% block title %}Upload Faculty Workload{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  {% if success %}
+    <div class="alert alert-success shadow-sm">{{ success }}</div>
+  {% endif %}
+
+  {% if error %}
+    <div class="alert alert-danger shadow-sm">{{ error }}</div>
+  {% endif %}
+
+  <div class="mb-4">
+    <h4>📊 Example Excel Format</h4>
+    <div class="table-responsive mb-3">
+      <table class="table table-bordered align-middle bg-white shadow-sm">
+        <thead class="table-light">
+          <tr>
+            <th>Subject</th>
+            <th>A1</th>
+            <th>A2</th>
+            <th>A3</th>
+            <th>A4</th>
+            <th>A5</th>
+            <th>A6</th>
+            <th>A7</th>
+            <th>A8</th>
+            <th>A9</th>
+            <th>HOURS</th>
+            <th>TYPE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>DM</td><td>PSK</td><td>MGV</td><td>PSK</td><td>MGV</td><td>PSK</td><td>MGV</td><td>DDP</td><td>PSK</td><td>MGV</td><td>5</td><td>ROOM</td>
+          </tr>
+          <tr>
+            <td>FSD-2</td><td>PHA</td><td>DPB</td><td>DKU</td><td>PHA</td><td>DPB</td><td>DKU</td><td>PHA</td><td>DPB</td><td>PBZ</td><td>6</td><td>LAB</td>
+          </tr>
+          <tr>
+            <td>COA</td><td>UMS</td><td>UMM</td><td>UMS</td><td>UMM</td><td>UMS</td><td>UMM</td><td>ZVB</td><td>UMM</td><td>UMS</td><td>5</td><td>ROOM</td>
+          </tr>
+          <tr>
+            <td>TOC</td><td>DPP</td><td>DAM</td><td>RHG</td><td>DPP</td><td>RHG</td><td>DPP</td><td>RHG</td><td>DPP</td><td>RHG</td><td>4</td><td>ROOM</td>
+          </tr>
+          <tr>
+            <td>PYTHON-II</td><td>KMS</td><td>MVP</td><td>DVP</td><td>KMS</td><td>MVP</td><td>KMS</td><td>MVP</td><td>PKV</td><td>AAP</td><td>6</td><td>LAB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <small class="text-muted">
+      <i>Fill your Excel file like this: <b>Subject</b>, <b>Batches</b> (A1...A9), <b>Faculty Short Name</b> in each cell, <b>HOURS</b> (per batch), and <b>TYPE</b> (ROOM/LAB).</i>
+    </small>
+  </div>
+
+  {% if not assignments %}
+    <h4 class="mb-3">Upload Faculty Workload Excel</h4>
+    <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm mb-5">
+      {% csrf_token %}
+      <div class="mb-3">{{ form.as_p }}</div>
+      <button type="submit" class="btn btn-primary">Upload and Preview</button>
+    </form>
+  {% else %}
+    <h4 class="mb-3">Preview Assignments</h4>
+    <form method="post" class="card p-4 shadow-sm mb-5">
+      {% csrf_token %}
+      <input type="hidden" name="assignments_json" value="{{ assignments_json|escape }}">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Subject</th>
+              <th>Batch</th>
+              <th>Faculty Short</th>
+              <th>Hours</th>
+              <th>Type</th>
+              <th>Room/Lab</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in assignments %}
+            <tr>
+              <td>{{ a.subject }}</td>
+              <td>{{ a.batch }}</td>
+              <td>{{ a.faculty_short }}</td>
+              <td>{{ a.hours }}</td>
+              <td>{{ a.type }}</td>
+              <td>{{ a.room_lab }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" name="save_assignments" value="1" class="btn btn-success">Save to Database</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

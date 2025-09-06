@@ -1,0 +1,26 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Edit Room{% endblock %}
+
+{% block content %}
+{# Link to your external CSS file #}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<div class="container py-4">
+    <div class="card shadow">
+        <h3>Edit Room</h3>
+        <form method="post">
+            {% csrf_token %}
+            {# Render each form field individually within a form-group div for consistent styling #}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Update Room</button>
+            <a href="{% url 'room_management' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

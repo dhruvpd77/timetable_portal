@@ -1,0 +1,24 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block content %}
+{# Link to your external CSS file #}
+<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+
+<div class="container py-4"> {# Added container and py-4 for consistent padding #}
+    <div class="card shadow"> {# Removed p-4 as padding is handled by card styling #}
+        <h3>Edit Course Specification</h3> {# Changed h4 to h3 for consistent heading style #}
+        <form method="post">
+            {% csrf_token %}
+            {# Render each form field individually within a form-group div for consistent styling #}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a href="{% url 'course_specification' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

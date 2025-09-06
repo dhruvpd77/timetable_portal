@@ -1,0 +1,336 @@
+{% load static %}
+{% load faculty_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Faculty Attendance Entry</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Your modern ERP CSS -->
+    <link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
+    <style>
+        .colorful-check {
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            color: #263159;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .colorful-check input[type="checkbox"] {
+            accent-color: #ff6f61;
+            width: 1.6em;
+            height: 1.6em;
+            min-width: 1.6em;
+            min-height: 1.6em;
+            cursor: pointer;
+            margin-right: 0.5em;
+        }
+        .colorful-check label {
+            font-weight: 700;
+            margin-bottom: 0;
+            cursor: pointer;
+            user-select: none;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: #263159;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">ERP System</a>
+        <div class="d-flex ms-auto">
+            <span class="navbar-text text-white me-3">
+                Logged in as: {{ user.get_full_name|default:user.username }}
+            </span>
+            <form method="post" action="{% url 'faculty_attendance:faculty_logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="card p-4" style="background: #f7fbff;">
+        <h3>Faculty Attendance Entry</h3>
+
+        <div class="messages mb-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+
+        <form method="get" id="filter-form" class="row g-3 align-items-center mb-4">
+            <div class="col-md-3">
+                <label for="faculty" class="form-label">Faculty</label>
+                <select id="faculty" name="faculty" class="form-select" onchange="this.form.submit()">
+                    {% for faculty in faculty_list %}
+                        <option value="{{ faculty.id }}" {% if faculty.id == selected_faculty.id %}selected{% endif %}>{{ faculty.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date" class="form-label">Date</label>
+                <select id="date" name="date" class="form-select" onchange="this.form.submit()">
+                    {% for dt in available_dates %}
+                        <option value="{{ dt|date:'Y-m-d' }}" {% if dt == selected_date %}selected{% endif %}>{{ dt|date:"D, d M Y" }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="batch" class="form-label">Batch</label>
+                <select id="batch" name="batch" class="form-select" onchange="this.form.submit()">
+                    <option value="">Select a batch</option>
+                    {% for batch in batches_with_lectures %}
+                        <option value="{{ batch.id }}" {% if selected_batch and batch.id == selected_batch.id %}selected{% endif %}>{{ batch.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="lecture" class="form-label">Lecture</label>
+                <select id="lecture" name="lecture_number" class="form-select" onchange="this.form.submit()">
+                    <option value="">Select lecture</option>
+                    {% for lec in lectures_for_batch %}
+                        <option value="{{ lec.time }}" {% if lec.time == selected_lecture_number %}selected{% endif %}>
+                            {{ lec.time }} | {{ lec.subject.subject_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        {% if students and selected_batch and selected_lecture_number %}
+            <form method="post" class="mb-5">
+                {% csrf_token %}
+                <input type="hidden" name="batch" value="{{ selected_batch.id }}">
+                <input type="hidden" name="lecture_number" value="{{ selected_lecture_number }}">
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Select Absent Students <small class="text-muted">(check to mark absent)</small>:
+                    </label>
+                    {% with absent_list=attendance_dict|get_item:selected_batch.id|get_item:selected_lecture_number %}
+                        <div class="row">
+                            {% for student in students %}
+                                <div class="col-md-2 mb-3">
+                                    <div class="colorful-check">
+                                        <input 
+                                            type="checkbox" 
+                                            name="absent_roll_numbers" 
+                                            id="absent_{{ student.roll_no }}" 
+                                            value="{{ student.roll_no }}"
+                                            {% if absent_list and student.roll_no in absent_list %}checked{% endif %}
+                                        >
+                                        <label for="absent_{{ student.roll_no }}">{{ student.roll_no }}</label>
+                                    </div>
+                                </div>
+                                {% if forloop.counter|divisibleby:5 %}
+                                    </div><div class="row">
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endwith %}
+                </div>
+
+                <button type="submit" class="btn btn-success">Save Attendance</button>
+            </form>
+        {% else %}
+            <div class="alert alert-warning mt-3">
+                Please select all filters (faculty, date, batch, lecture) to mark attendance.
+            </div>
+        {% endif %}
+
+        <hr>
+
+        <h5>Attendance Summary</h5>
+
+        {% if attendance_qs %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Faculty</th>
+                            <th>Batch</th>
+                            <th>Lecture</th>
+                            <th>Absent Students</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_qs %}
+                            <tr>
+                                <td>{{ record.date|date:"Y-m-d" }}</td>
+                                <td>{{ record.faculty.full_name }}</td>
+                                <td>{{ record.batch.name }}</td>
+                                <td>{{ record.lecture_number }}</td>
+                                <td>
+                                    {% if record.absent_roll_numbers %}
+                                        {{ record.absent_roll_numbers }}
+                                    {% else %}
+                                        <span class="text-success">None</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_attendance_id" value="{{ record.id }}">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this attendance record?');">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No attendance records found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">No attendance records found.</p>
+        {% endif %}
+        <button type="button" id="sendWhatsappSummaryBtn" class="btn btn-primary mt-4">
+    Send Attendance Summary on WhatsApp
+</button>
+<script>
+document.getElementById('sendWhatsappSummaryBtn').addEventListener('click', function() {
+    const fixedNumber = '7817879921';
+
+    // Get selected faculty full name from dropdown option text
+    const facultyFullNameElement = document.querySelector('select#faculty option:checked');
+    if (!facultyFullNameElement) {
+        alert("Please select a Faculty.");
+        return;
+    }
+    let fullName = facultyFullNameElement.textContent.trim();
+
+    // Determine if fullName is abbreviation (all uppercase letters and digits, no spaces)
+    const isAbbreviation = /^[A-Z0-9]+$/.test(fullName.replace(/\s+/g, ''));
+
+    let facultyInitials;
+    if (isAbbreviation) {
+        facultyInitials = fullName;  // Use as-is
+    } else {
+        // Extract initials (first letter each word uppercase, joined)
+        facultyInitials = fullName.split(/\s+/).map(word => word[0].toUpperCase()).join('');
+    }
+
+    // Get selected date
+    const dateSelect = document.getElementById('date');
+    if (!dateSelect || !dateSelect.value) {
+        alert("Please select a date.");
+        return;
+    }
+    const selectedDateObj = new Date(dateSelect.value);
+    const pad = num => num.toString().padStart(2, '0');
+    const formattedDate = `${pad(selectedDateObj.getDate())}/${pad(selectedDateObj.getMonth()+1)}/${selectedDateObj.getFullYear()}`;
+
+    // Get attendance rows
+    const attendanceRows = document.querySelectorAll('table.table tbody tr');
+    if (!attendanceRows.length) {
+        alert("No attendance records found to send.");
+        return;
+    }
+
+    // Map lecture time strings to their lecture numbers as before
+    const lecTimeToNum = {
+        "8:45–9:45": 1,
+        "8:45-9:45": 1,
+        "9:45–10:45": 2,
+        "9:45-10:45": 2,
+        "11:30–12:30": 3,
+        "11:30-12:30": 3,
+        "12:30–13:30": 4,
+        "12:30-13:30": 4,
+        "13:45–14:45": 5,
+        "13:45-14:45": 5
+    };
+
+    // Data structure:
+    // lectureNum -> batchName -> set of absent rolls
+    const data = {};
+
+    attendanceRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 6) return;
+
+        const batchName = cells[2].textContent.trim();
+        const lectureTimeRaw = cells[3].textContent.trim();
+        const absentRollsRaw = cells[4].textContent.trim();
+
+        // Map lecture time string to number
+        let lectureNum = lecTimeToNum[lectureTimeRaw];
+        if (!lectureNum) {
+            console.warn(`Unknown lecture time: "${lectureTimeRaw}"`);
+            return;
+        }
+
+        if (!data[lectureNum]) {
+            data[lectureNum] = {};
+        }
+        if (!data[lectureNum][batchName]) {
+            data[lectureNum][batchName] = new Set();
+        }
+
+        if (absentRollsRaw && absentRollsRaw.toLowerCase() !== 'none') {
+            absentRollsRaw.split(',').forEach(r => {
+                data[lectureNum][batchName].add(r.trim());
+            });
+        }
+    });
+
+    // Sort lecture numbers ascending
+    const sortedLectureNums = Object.keys(data)
+        .map(n => Number(n))
+        .filter(n => !isNaN(n))
+        .sort((a, b) => a - b);
+
+    if (sortedLectureNums.length === 0) {
+        alert("No valid lecture attendance data available.");
+        return;
+    }
+
+    // Compose message
+    let message = '';
+    message += `Fac Initials : ${facultyInitials}\n`;
+    message += `Date: ${formattedDate}\n\n`;
+
+    sortedLectureNums.forEach(lecNum => {
+        message += `LEC No: ${lecNum}\n`;
+        const batches = data[lecNum];
+
+        Object.entries(batches).forEach(([batchName, rollSet]) => {
+            if (rollSet.size === 0) return;
+            // Sort absent rolls numerically or lexicographically
+            const sortedRolls = Array.from(rollSet)
+                .map(r => isNaN(Number(r)) ? r : Number(r))
+                .sort((a, b) => (a > b ? 1 : -1))
+                .join(', ');
+
+            message += `Div: ${batchName}\n`;
+            message += `Absent No: ${sortedRolls}\n\n`;
+        });
+    });
+
+    // Trim trailing whitespace/newlines
+    message = message.trim();
+
+    const encodedMsg = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${fixedNumber}?text=${encodedMsg}`;
+
+    window.open(whatsappUrl, '_blank');
+});
+</script>
+
+
+    </div>
+</div>
+</body>
+</html>

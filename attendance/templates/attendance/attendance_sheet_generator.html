@@ -1,0 +1,79 @@
+{% extends "core/base_logged_in.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg mb-4">
+    <div class="card-body">
+      <h3 class="mb-4 text-primary">Attendance Excel Generator</h3>
+      {% if msg %}
+        <div class="alert alert-success">{{ msg }}</div>
+      {% endif %}
+      <form method="post" class="row gy-2 align-items-center mb-4">
+        {% csrf_token %}
+        <h5 class="mb-3">Step 1: Set Term Windows</h5>
+        <div class="col-auto">
+          <label class="form-label mb-0">T1 Start:</label>
+          <input name="t1_start" type="date" class="form-control" value="{{ session_window.t1_start|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T1 End:</label>
+          <input name="t1_end" type="date" class="form-control" value="{{ session_window.t1_end|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T2 Start:</label>
+          <input name="t2_start" type="date" class="form-control" value="{{ session_window.t2_start|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T2 End:</label>
+          <input name="t2_end" type="date" class="form-control" value="{{ session_window.t2_end|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T3 Start:</label>
+          <input name="t3_start" type="date" class="form-control" value="{{ session_window.t3_start|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T3 End:</label>
+          <input name="t3_end" type="date" class="form-control" value="{{ session_window.t3_end|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T4 Start:</label>
+          <input name="t4_start" type="date" class="form-control" value="{{ session_window.t4_start|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0">T4 End:</label>
+          <input name="t4_end" type="date" class="form-control" value="{{ session_window.t4_end|date:'Y-m-d' }}">
+        </div>
+        <div class="col-auto align-self-end">
+          <button type="submit" name="save_windows" class="btn btn-success">💾 Save Windows</button>
+        </div>
+      </form>
+      <hr>
+      <form method="post" class="mt-4">
+        {% csrf_token %}
+        <h5 class="mb-3">Step 2: Download Attendance Sheet</h5>
+        <div class="row g-3 align-items-end mb-3">
+          <div class="col-md-6">
+            <label for="batchSelect" class="form-label">Batch:</label>
+            <select name="batch" id="batchSelect" class="form-select" required>
+              <option value="">Select</option>
+              {% for b in batches %}
+                <option value="{{ b.id }}">{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="ttSelect" class="form-label">Timetable:</label>
+            <select name="timetable" id="ttSelect" class="form-select" required>
+              <option value="">Select</option>
+              {% for t in timetables %}
+                <option value="{{ t.id }}">{{ t.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <button type="submit" name="download_attendance" class="btn btn-primary">⬇️ Download Excel</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

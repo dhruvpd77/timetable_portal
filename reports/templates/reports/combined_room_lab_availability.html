@@ -1,0 +1,83 @@
+{% extends 'core/base_logged_in.html' %}
+{% load dict_filters %}
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0 text-primary">🏛️ Combined Room & Lab Availability</h3>
+    <a href="{% url 'combined_timetable' %}" class="btn btn-outline-secondary">
+      ← Back to Combined Timetable
+    </a>
+  </div>
+
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-4">
+      <label class="form-label">Select Departments (multiple)</label>
+      <select name="departments" class="form-select" multiple onchange="this.form.submit()">
+        {% for dept in departments %}
+          <option value="{{ dept }}" {% if dept in selected_departments %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Select Timetables (multiple)</label>
+      <select name="timetables" class="form-select" multiple>
+        {% for tt in timetables_for_departments %}
+          <option value="{{ tt }}" {% if tt in selected_timetables %}selected{% endif %}>{{ tt }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">Show Availability</button>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-warning">{{ error }}</div>
+  {% elif grid %}
+    <div class="mb-4 d-flex gap-2">
+      <a href="{% url 'combined_room_lab_availability_download' %}?{% for d in selected_departments %}departments={{ d }}&{% endfor %}{% for t in selected_timetables %}timetables={{ t }}&{% endfor %}format=excel"
+         class="btn btn-success" target="_blank" rel="noopener"><i class="fas fa-file-excel"></i> Download Excel</a>
+      <a href="{% url 'combined_room_lab_availability_download' %}?{% for d in selected_departments %}departments={{ d }}&{% endfor %}{% for t in selected_timetables %}timetables={{ t }}&{% endfor %}format=pdf"
+         class="btn btn-danger" target="_blank" rel="noopener"><i class="fas fa-file-pdf"></i> Download PDF</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 120px;" class="bg-secondary text-white">Day</th>
+            {% for slot in slots %}
+              <th class="bg-primary text-white">{{ slot }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in grid %}
+            <tr>
+              <td class="fw-bold">{{ row.day }}</td>
+              {% for slot in slots %}
+                <td style="min-width: 160px; font-size: 14px; white-space: pre-wrap;">
+                  {% autoescape off %}{{ row|get_item:slot }}{% endautoescape %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">Please select departments and timetables to see combined room & lab availability.</div>
+  {% endif %}
+
+</div>
+
+<style>
+  .table th, .table td { text-align: center; vertical-align: middle; }
+  .table-hover tbody tr:hover { background-color: #f5faff; }
+  .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; }
+  .card { border-radius: 16px; }
+</style>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'core/base_logged_in.html' %}
+
+{% block content %}
+<div class="card shadow p-4">
+  <h4>Assign Course to Faculty & Batches</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Assign</button>
+  </form>
+  <hr>
+  <h5>Existing Assignments</h5>
+
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Subject</th>
+        <th>Faculty</th>
+        <th>Batch</th>
+        <th>Hours</th>
+        <th>Room/Lab</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in assignments %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ a.subject.subject_name }}</td>
+          <td>{{ a.faculty.full_name }}</td>
+          <td>{{ a.batch.name }}</td>
+          <td>{{ a.hours }}</td>
+          <td>{{ a.room_or_lab }}</td>
+          <td>
+            <a href="{% url 'delete_course_assignment' a.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this assignment?')">Delete</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-center">No assignments found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

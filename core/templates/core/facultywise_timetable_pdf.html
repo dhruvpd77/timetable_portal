@@ -1,0 +1,63 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Faculty-wise Timetable</title>
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 10px; margin: 10px; }
+        h2 { text-align: center; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; table-layout: fixed; }
+        th, td { border: 1px solid black; padding: 5px; text-align: center; word-wrap: break-word; }
+        th { background-color: #d9d9d9; font-weight: bold; }
+        .recess { background-color: #ffff99; font-weight: bold; }
+        .total-row { background-color: #a7c7e7; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h2>L J INSTITUTES OF ENGINEERING & TECHNOLOGY</h2>
+<h3>Faculty-wise Timetable</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Day</th>
+            <th>Time</th>
+            {% for faculty in faculty_names %}
+                <th>{{ faculty }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for day in days_order %}
+            {% for slot in slots_order %}
+                <tr>
+                    {% if forloop.first %}
+                        <td rowspan="{{ slots_order|length }}">{{ day }}</td>
+                    {% endif %}
+                    <td>{{ slot }}</td>
+                    {% for faculty in faculty_names %}
+                        <td>
+                            {{ grid|get_item:faculty|get_item:day|get_item:slot|default:"-" }}
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% if forloop.counter == 2 %}
+                <tr class="recess">
+                    <td colspan="{{ 2|add:faculty_names|length }}">RECESS</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        <tr class="total-row">
+            <td colspan="2">Total Lectures</td>
+            {% for faculty in faculty_names %}
+                <td>{{ faculty_lecture_counts|get_item:faculty }}</td>
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
