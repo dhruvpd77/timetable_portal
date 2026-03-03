@@ -57,6 +57,8 @@ wheels/
 # Static files
 staticfiles/
 static/
+!core/static/
+!core/static/**
 
 # Media files
 media/

@@ -1,0 +1,444 @@
+/* General Page Body Styling */
+body {
+    background-color: #f0f2f5; /* Light, subtle background for a clean look */
+    font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Modern font stack */
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Main Container Styling */
+.container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Main Card Styling */
+.card {
+    border: none;
+    border-radius: 18px; /* More rounded corners for a softer, modern feel */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12); /* Deeper, more prominent shadow */
+    padding: 3.5rem; /* Increased padding inside the card for spaciousness */
+    background-color: #ffffff; /* Clean white background */
+    overflow: hidden; /* Ensures content respects border-radius */
+    animation: fadeInScale 0.9s ease-out forwards; /* Fade-in and slight scale animation */
+    opacity: 0; /* Start hidden for animation */
+}
+
+/* Heading Styles */
+h3 {
+    color: #0056b3; /* Professional blue for the main heading */
+    font-weight: 700; /* Bolder text */
+    margin-bottom: 2.2rem; /* More space below heading */
+    font-size: 2.2rem; /* Larger font size */
+    text-align: center;
+    position: relative;
+    padding-bottom: 0.8rem;
+    letter-spacing: 0.8px; /* Slightly spaced letters */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05); /* Subtle text shadow */
+}
+
+h3::after {
+    content: '';
+    display: block;
+    width: 80px; /* Wider underline */
+    height: 5px; /* Thicker underline */
+    background: linear-gradient(to right, #007bff, #0056b3); /* Blue gradient underline */
+    margin: 0.8rem auto 0;
+    border-radius: 5px;
+}
+
+h5 {
+    color: #343a40; /* Darker grey for sub-heading */
+    font-weight: 600; /* Semi-bold text */
+    margin-top: 3rem; /* More space above sub-heading */
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    position: relative;
+    padding-bottom: 0.6rem;
+    letter-spacing: 0.4px;
+}
+
+h5::after {
+    content: '';
+    display: block;
+    width: 70px; /* Wider underline */
+    height: 4px; /* Thicker underline */
+    background: linear-gradient(to right, #17a2b8, #138496); /* Teal gradient underline */
+    margin-top: 0.6rem;
+    border-radius: 5px;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 1.8rem; /* Increased space between form groups */
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.8rem; /* More space between label and input */
+    display: block; /* Ensure label is on its own line */
+    font-size: 1.1rem; /* Slightly larger label font */
+}
+
+.form-control, .form-select {
+    border-radius: 12px; /* More rounded input fields */
+    border: 1px solid #ced4da;
+    padding: 1rem 1.4rem; /* Generous padding for inputs */
+    font-size: 1.05rem;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06); /* More pronounced inner shadow */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth cubic-bezier transition */
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.3rem rgba(0, 123, 255, 0.3), inset 0 2px 6px rgba(0, 0, 0, 0.1); /* Enhanced focus shadow */
+    transform: translateY(-3px); /* More noticeable lift on focus */
+}
+
+/* Checkbox Group Styling (if applicable to other forms) */
+.batch-selection-group {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.batch-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.batch-item:hover {
+    background-color: #eef4f9;
+}
+
+.batch-item input[type="checkbox"] {
+    margin-right: 1rem;
+    transform: scale(1.3); /* Larger checkbox */
+    cursor: pointer;
+}
+
+.batch-item label {
+    margin-bottom: 0;
+    font-weight: 500;
+    color: #343a40;
+    flex-grow: 1; /* Allow label to take available space */
+    cursor: pointer;
+}
+
+.batch-item .hours-input {
+    width: 80px; /* Fixed width for hours input */
+    margin-left: 1rem;
+    text-align: center;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    background-color: #e9ecef; /* Different background for disabled state */
+    transition: all 0.3s ease;
+}
+
+.batch-item .hours-input:enabled {
+    background-color: #ffffff; /* White background when enabled */
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.1);
+}
+
+
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #218838); /* Green gradient for success button */
+    border: none; /* Remove default border */
+    padding: 1rem 2.2rem; /* Slightly reduced padding */
+    font-size: 1.1rem; /* Slightly reduced font size */
+    font-weight: 700; /* Bolder text */
+    border-radius: 15px; /* More rounded button */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth transition */
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3); /* Prominent shadow */
+    /* Removed width: 100%; to allow natural sizing or column-based sizing */
+    margin-top: 1.5rem; /* Adjusted space above the button */
+    color: white; /* White text for contrast */
+    text-transform: uppercase; /* Uppercase text */
+    letter-spacing: 0.8px; /* Spaced letters */
+    cursor: pointer;
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, #218838, #1e7e34); /* Darker green gradient on hover */
+    transform: translateY(-5px); /* More pronounced lift on hover */
+    box-shadow: 0 12px 25px rgba(40, 167, 69, 0.45); /* Larger shadow on hover */
+}
+
+.btn-primary { /* Specific style for the 'Edit' button */
+    background: linear-gradient(45deg, #007bff, #0056b3); /* Blue gradient */
+    border: none;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085); /* Darker blue gradient on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.35);
+}
+
+.btn-secondary { /* Style for the 'Cancel' button */
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    padding: 1rem 2.5rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border-radius: 15px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+    width: 100%;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(108, 117, 125, 0.45);
+}
+
+
+hr {
+    border: none; /* Remove default border */
+    height: 4px; /* Thicker separator */
+    background: linear-gradient(to right, #e0e0e0, #f0f0f0, #e0e0e0); /* Subtle gradient for HR */
+    margin-top: 3.5rem;
+    margin-bottom: 3.5rem;
+    border-radius: 2px;
+}
+
+/* Table Styling */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 15px; /* Rounded corners for the entire table */
+    overflow: hidden; /* Ensures content respects border-radius */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Prominent shadow for the table */
+    margin-bottom: 0;
+    animation: fadeIn 1s ease-out 0.3s forwards; /* Delayed fade-in for table */
+    opacity: 0; /* Start hidden for animation */
+}
+
+.table thead th {
+    background: linear-gradient(45deg, #007bff, #0056b3); /* Blue gradient for header */
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1rem; /* Slightly larger header font */
+    padding: 1.5rem 1.8rem; /* More padding */
+    border-bottom: none;
+    vertical-align: middle;
+    letter-spacing: 0.6px;
+}
+
+.table tbody td {
+    background-color: #ffffff;
+    vertical-align: middle;
+    padding: 1.2rem 1.8rem; /* More padding for body cells */
+    font-size: 1rem;
+    border-top: 1px solid #e9ecef; /* Light top border for rows */
+}
+
+.table tbody tr:nth-child(even) td {
+    background-color: #f8f9fa; /* Zebra striping for readability */
+}
+
+.table-hover tbody tr:hover td {
+    background-color: #e2f0ff; /* Light blue highlight on hover */
+    transform: translateY(-4px); /* More pronounced lift on hover */
+    box-shadow: 0 6px 18px rgba(0, 123, 255, 0.2); /* Subtle shadow on hover */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Action Buttons in Table */
+.btn-sm {
+    padding: 0.6rem 1.3rem; /* More padding for small buttons */
+    font-size: 0.95rem; /* Slightly larger font */
+    border-radius: 10px; /* More rounded small buttons */
+    transition: all 0.2s ease;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.2);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+    transform: translateY(-2px); /* Lift on hover */
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.35);
+}
+
+.text-center {
+    color: #6c757d;
+    padding: 3rem 0 !important; /* More padding for empty message */
+    font-style: italic;
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
+/* Animations */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Timetable Specific Styles */
+.timetable-table {
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.timetable-table thead th {
+    background: linear-gradient(45deg, #007bff, #0056b3); /* Consistent blue gradient */
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    padding: 1.2rem 0.8rem; /* Adjusted padding for better fit */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Lighter border for header cells */
+}
+
+.timetable-table tbody td {
+    background-color: #ffffff;
+    vertical-align: top; /* Align content to top for multi-line entries */
+    padding: 0.8rem 0.5rem; /* Reduced padding for more content space */
+    font-size: 0.9rem;
+    border: 1px solid #e9ecef; /* Light border for body cells */
+    height: 100px; /* Fixed height for cells to ensure consistency */
+    overflow: hidden; /* Hide overflow if content is too long */
+    position: relative; /* For potential future absolute positioning of content */
+}
+
+.timetable-table tbody tr:nth-child(even) td {
+    background-color: #f8f9fa; /* Zebra striping */
+}
+
+.timetable-table .day-cell {
+    background: linear-gradient(135deg, #17a2b8, #138496); /* Teal gradient for day cells */
+    color: white;
+    font-weight: 700;
+    vertical-align: middle;
+    font-size: 1.1em;
+    border-right: 2px solid rgba(255, 255, 255, 0.3); /* Stronger right border */
+}
+
+.timetable-table .batch-cell {
+    background-color: #e9f5ff; /* Light blue for batch cells */
+    font-weight: 600;
+    vertical-align: middle;
+    font-size: 1em;
+    border-right: 1px solid #cce5ff; /* Lighter right border */
+}
+
+.timetable-item {
+    background-color: #f0f8ff; /* Very light blue background for each item */
+    border: 1px solid #cce5ff; /* Light blue border */
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin-bottom: 0.4rem; /* Space between items in the same cell */
+    line-height: 1.3;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow for items */
+    transition: all 0.2s ease;
+}
+
+.timetable-item:hover {
+    background-color: #e0f2ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.timetable-item strong {
+    color: #0056b3; /* Subject name color */
+    font-size: 0.95em;
+}
+
+/* Timetable Specific Styles (for .timetable-table and its cells) */
+/* ... other timetable styles ... */
+
+.timetable-item .text-muted {
+    font-size: 0.85em;
+    color: #6c757d !important; /* Faculty name color */
+    font-style: normal; /* <--- ADD THIS LINE to ensure normal font style */
+}
+
+/* Add a general rule for timetable-item if not already present or to specifically target text */
+.timetable-item {
+    font-style: normal; /* Ensure all text within a timetable item is normal by default */
+}
+.timetable-item .text-info {
+    font-size: 0.85em;
+    color: #17a2b8 !important; /* Room/Lab color */
+}
+
+.empty-slot {
+    font-size: 1.5em; /* Larger dash for empty slots */
+    color: #adb5bd !important; /* Muted color */
+}
+
+/* Specific button and input for timetable generation/saving */
+.large-button {
+    padding: 1.2rem 2.8rem; /* Larger padding */
+    font-size: 1.25rem; /* Larger font size */
+    font-weight: 700;
+    border-radius: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 10px 25px rgba(0, 123, 255, 0.35); /* Prominent shadow */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.large-button:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 15px 35px rgba(0, 123, 255, 0.5);
+}
+
+.timetable-name-input {
+    max-width: 300px; /* Limit width of the input field */
+    display: inline-block; /* Ensure it sits next to the button */
+    vertical-align: middle; /* Align with button */
+    border-radius: 12px;
+    padding: 1rem 1.4rem;
+    font-size: 1.05rem;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}

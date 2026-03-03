@@ -127,7 +127,9 @@ MEDIA_URL = '/media/'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "core/static"]
+# Only add if exists (avoids warning when core/static missing on fresh clone)
+_core_static = BASE_DIR / "core/static"
+STATICFILES_DIRS = [_core_static] if _core_static.exists() else []
 # Required for collectstatic (PythonAnywhere deployment)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 

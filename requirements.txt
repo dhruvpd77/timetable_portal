@@ -1,8 +1,9 @@
 Django>=5.1
 django-extensions>=3.2
+ortools>=9.0
 pandas>=2.0
 openpyxl>=3.1
 xlsxwriter>=3.1
-# Pin svglib<1.6 to avoid pycairo/rlpycairo (fails to compile on PythonAnywhere)
-svglib>=1.2.1,<1.6
+# MUST be before xhtml2pdf: svglib 1.6+ needs pycairo (fails on PythonAnywhere)
+svglib==1.5.1
 xhtml2pdf>=0.2.13
