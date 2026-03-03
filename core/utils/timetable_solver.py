@@ -1,5 +1,11 @@
 from collections import defaultdict
-from ortools.sat.python import cp_model
+
+try:
+    from ortools.sat.python import cp_model
+    ORTOOLS_AVAILABLE = True
+except ImportError:
+    cp_model = None
+    ORTOOLS_AVAILABLE = False
 
 """
 Enhanced Timetable Solver with Lab Allocation Rules
@@ -37,6 +43,12 @@ def generate_timetable(
     """
     Main timetable generation function. Uses 2-hour pair slot logic.
     """
+    if not ORTOOLS_AVAILABLE:
+        raise ImportError(
+            "The 'ortools' package is required for timetable generation but is not installed. "
+            "Install it with: pip install ortools. "
+            "On PythonAnywhere free tier, disk quota may prevent installation; consider upgrading or freeing disk space."
+        )
     return generate_timetable_2hour_pairs(
         department, settings, specs, assignments, faculty_objs, batch_objs,
         rooms, labs, batch_to_rooms, batch_to_labs,
@@ -819,6 +831,13 @@ def diagnose_timetable_failure(
     preferred_faculty_slots=None, timetable_type='2_hour',
 ):
     """Identify which constraint type likely causes timetable generation to fail."""
+    if not ORTOOLS_AVAILABLE:
+        return [{
+            "type": "ortools_missing",
+            "title": "ortools Not Installed",
+            "description": "The 'ortools' package is required for timetable generation and diagnosis.",
+            "fix": "Install with: pip install ortools. On PythonAnywhere free tier, free disk space or upgrade your plan.",
+        }]
     reasons = []
     bf = blocked_faculty_slots or {}
     br = blocked_room_slots or {}

@@ -190,3 +190,24 @@ This keeps svglib at 1.5.x, which does not require rlpycairo/pycairo.
 ### Database
 - The default SQLite database is at `~/timetable_portal/db.sqlite3`.
 - Back it up regularly: `cp db.sqlite3 db.sqlite3.backup`
+
+### ortools / Disk quota exceeded (PythonAnywhere free tier)
+
+The timetable solver requires **ortools** (~30 MB). On the free tier, disk quota may prevent installation:
+
+```
+ERROR: Could not install packages due to an OSError: [Errno 122] Disk quota exceeded
+```
+
+**Options:**
+
+1. **Free disk space** – Remove caches, old virtualenvs, and unused files:
+   ```bash
+   pip cache purge
+   rm -rf ~/.cache/pip
+   # Remove any old venvs you don't use
+   ```
+
+2. **Upgrade PythonAnywhere** – A paid plan provides more disk space.
+
+3. **Run without ortools** – The app will load and work for reports, faculty management, etc. **Timetable generation** will show a clear error asking you to install ortools. Other features remain usable.

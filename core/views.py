@@ -773,9 +773,8 @@ def generate_timetable_view(request):
         )
 
         # If generation failed (INFEASIBLE), run diagnostic to find likely causes
-        from ortools.sat.python import cp_model
         from django.urls import reverse
-        if status not in [cp_model.OPTIMAL, cp_model.FEASIBLE] and timetable_by_day_slot is None:
+        if status_name not in ("OPTIMAL", "FEASIBLE") and timetable_by_day_slot is None:
             gen_error = f"Timetable could not be generated (solver status: {status_name})."
             gen_reasons = diagnose_timetable_failure(
                 department, settings, specs, assignments, faculty_objs, batch_objs,
