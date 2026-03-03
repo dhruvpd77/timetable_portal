@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,13 +20,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-q&@vola&#zygq@!^2)hp^jekco-26i#13v)$=zp$&hzl0derz1'
+# SECURITY: Use env vars in production (PythonAnywhere). Fallback for local dev.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-q&@vola&#zygq@!^2)hp^jekco-26i#13v)$=zp$&hzl0derz1')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG: False on PythonAnywhere, True for local dev
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ["192.168.1.11","localhost","127.0.0.1"]
+# ALLOWED_HOSTS: Add your PythonAnywhere domain (e.g. yourusername.pythonanywhere.com)
+_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.1.11')
+ALLOWED_HOSTS = [h.strip() for h in _hosts.split(',') if h.strip()]
+# Always include PythonAnywhere domains for deployment
+ALLOWED_HOSTS.extend(['.pythonanywhere.com', 'www.pythonanywhere.com'])
 
 
 
@@ -115,22 +120,41 @@ USE_I18N = True
 
 USE_TZ = True
 
-import os
-
+# Media files (user uploads)
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "core/static"]
+# Required for collectstatic (PythonAnywhere deployment)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# If you use a project-level static dir:
-STATICFILES_DIRS = [BASE_DIR / "static"]
-
-# During development, DEBUG=True serves static files automatically.
+# Auth: redirect unauthenticated users to welcome/login page
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/department-time-settings/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TEMPLATES[0]['DIRS'] = [BASE_DIR / "core/templates"]
-STATICFILES_DIRS = [BASE_DIR / "core/static"]
+
+# Production security (PythonAnywhere)
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    # Add your PythonAnywhere URL, e.g. https://yourusername.pythonanywhere.com
+    _origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _origins.split(',') if o.strip()]
+
+# Optional: load local overrides (create local_settings.py for dev overrides)
+try:
+    from .local_settings import *
+except ImportError:
+    pass

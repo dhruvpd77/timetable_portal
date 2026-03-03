@@ -46,7 +46,12 @@ A Django-based web application for managing college timetables, faculty assignme
 - `reports/` - Report generation and analytics
 - `erp_timetable/` - Django project settings
 
+## Deployment
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for step-by-step instructions to deploy on PythonAnywhere.
+
 ## Configuration
 
 - `ALLOWED_HOSTS` in `settings.py` - Add your server IP if deploying
 - Default database: SQLite (change in settings for production)
+- For production: set `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=False`, `CSRF_TRUSTED_ORIGINS` via environment variables
