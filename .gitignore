@@ -110,6 +110,9 @@ celerybeat.pid
 # Rope project settings
 .ropeproject
 
+# Temp/debug scripts
+analyze_cricket.py
+
 # mkdocs documentation
 /site
 

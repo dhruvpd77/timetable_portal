@@ -1,13 +1,42 @@
 {% extends "core/base_logged_in.html" %}
 {% load static %}
+{% block title %}Edit Assignment - LJ University{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <h3>Edit Course Assignment</h3>
-    <form method="post">
+<style>
+  .edit-page-title { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .edit-page-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .edit-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .edit-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .edit-form .form-control, .edit-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .edit-form .form-control:focus, .edit-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-save-edit { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-save-edit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .btn-cancel-edit { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; }
+  .btn-cancel-edit:hover { border-color: #94a3b8; color: #475569; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="edit-page-title"><i class="fas fa-tasks me-2"></i>Edit Assignment</h1>
+    <p class="edit-page-subtitle">Update course assignment details.</p>
+  </div>
+  <div class="card edit-card">
+    <div class="card-body p-4">
+      <form method="post" class="edit-form">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Update</button>
-        <a href="{% url 'assign_course' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="row g-3">
+          {% for field in form %}
+          <div class="col-12 col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button type="submit" class="btn btn-save-edit"><i class="fas fa-save me-2"></i>Update</button>
+          <a href="{% url 'assign_course' %}" class="btn btn-cancel-edit"><i class="fas fa-arrow-left me-2"></i>Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

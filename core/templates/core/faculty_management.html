@@ -1,83 +1,112 @@
 {% extends 'core/base_logged_in.html' %}
-{% block title %}Faculty Management{% endblock %}
+{% block title %}Faculty Management - LJ University{% endblock %}
 {% block content %}
-
-<div class="d-flex justify-content-between align-items-center mb-4 page-header-compact">
-    <h3>👨‍🏫 Faculty Management</h3>
-    <a href="{% url 'department_time_settings' %}" class="btn btn-outline-secondary">← Back to Time Settings</a>
-</div>
-
-{% if messages %}
-    <div class="message-container">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-add-mgmt { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-add-mgmt:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .mgmt-list-header { font-weight: 700; color: #1e3a5f; font-size: 1.1rem; margin: 1.5rem 0 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+  .mgmt-item-card { background: #f8fafc; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; }
+  .mgmt-item-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .mgmt-item-name { font-weight: 600; color: #1e293b; }
+  .mgmt-item-meta { font-size: 0.875rem; color: #64748b; }
+  .mgmt-item-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .mgmt-empty { text-align: center; padding: 2rem; color: #64748b; }
+  .mgmt-empty i { font-size: 3rem; opacity: 0.4; margin-bottom: 0.5rem; }
+  .btn-back { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; }
+  .btn-back:hover { border-color: #94a3b8; color: #475569; }
+  @media (max-width: 575px) { .mgmt-item-card { text-align: center; } .mgmt-item-actions { justify-content: center; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-chalkboard-teacher me-2"></i>Faculty Management</h1>
+      <p class="mgmt-page-subtitle">Add and manage faculty members for your department.</p>
     </div>
-{% endif %}
-
-<div class="card shadow mb-4">
-    <div class="card-header bg-primary text-white">➕ Add New Faculty</div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="full_name">Full Name</label>
-                    <input type="text" name="full_name" class="form-control" placeholder="e.g., Dr. Jane Doe" required>
-                </div>
-                <div class="col-md-3">
-                    <label for="short_name">Short Name</label>
-                    <input type="text" name="short_name" class="form-control" placeholder="e.g., JDO" required>
-                </div>
-                <div class="col-md-3">
-                    <label for="default_load">Default Load</label>
-                    <input type="number" name="default_load" class="form-control" value="18" placeholder="e.g., 18" required>
-                </div>
-            </div>
-            <button type="submit" name="add_faculty" class="btn btn-success">Add Faculty</button>
-        </form>
+    <a href="{% url 'department_time_settings' %}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i>Back to Time Settings</a>
+  </div>
+  {% if messages %}
+    <div class="mb-4">{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}</div>
+  {% endif %}
+  <div class="card mgmt-card mb-4">
+    <div class="card-body p-4">
+      <h5 class="mb-3"><i class="fas fa-plus-circle me-2"></i>Add New Faculty</h5>
+      <form method="post" class="mgmt-form">
+        {% csrf_token %}
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-5">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" name="full_name" class="form-control" placeholder="e.g. Dr. Jane Doe" required>
+          </div>
+          <div class="col-12 col-md-3">
+            <label for="short_name" class="form-label">Short Name</label>
+            <input type="text" name="short_name" class="form-control" placeholder="e.g. JDO" required>
+          </div>
+          <div class="col-12 col-md-2">
+            <label for="default_load" class="form-label">Default Load</label>
+            <input type="number" name="default_load" class="form-control" value="18" min="1" required>
+          </div>
+          <div class="col-12 col-md-2">
+            <button type="submit" name="add_faculty" class="btn btn-add-mgmt w-100"><i class="fas fa-plus me-2"></i>Add</button>
+          </div>
+        </div>
+      </form>
     </div>
-</div>
-
-<div class="card shadow">
-    <div class="card-header bg-info text-white">👥 Faculty List</div>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover m-0">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Full Name</th>
-                    <th>Short Name</th>
-                    <th>Default Load</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <h5 class="mgmt-list-header"><i class="fas fa-users me-2"></i>Faculty List</h5>
+      {% if faculty_list %}
+        <div class="d-none d-md-block">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light"><tr><th>#</th><th>Full Name</th><th>Short Name</th><th>Default Load</th><th class="text-end">Actions</th></tr></thead>
+              <tbody>
                 {% for fac in faculty_list %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ fac.full_name }}</td>
-                        <td>{{ fac.short_name }}</td>
-                        <td>{{ fac.default_load }}</td>
-                        <td>
-                            <a href="{% url 'edit_faculty' fac.id %}" class="btn btn-sm btn-warning">Edit</a>
-
-                            <form method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="delete_faculty" value="{{ fac.id }}">
-                                <button type="submit" class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Are you sure you want to delete faculty {{ fac.full_name }}? This action cannot be undone.')">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No faculty added yet. Get started by adding a new faculty member above!</td>
-                    </tr>
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td><strong>{{ fac.full_name }}</strong></td>
+                  <td>{{ fac.short_name }}</td>
+                  <td>{{ fac.default_load }}</td>
+                  <td class="text-end">
+                    <a href="{% url 'edit_faculty' fac.id %}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
+                    <form method="post" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="delete_faculty" value="{{ fac.id }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete {{ fac.full_name }}?');"><i class="fas fa-trash"></i></button>
+                    </form>
+                  </td>
+                </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="d-md-none">
+          {% for fac in faculty_list %}
+          <div class="mgmt-item-card">
+            <div class="mgmt-item-name">{{ fac.full_name }}</div>
+            <div class="mgmt-item-meta">{{ fac.short_name }} · Load: {{ fac.default_load }}</div>
+            <div class="mgmt-item-actions mt-2">
+              <a href="{% url 'edit_faculty' fac.id %}" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="delete_faculty" value="{{ fac.id }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete {{ fac.full_name }}?');"><i class="fas fa-trash me-1"></i>Delete</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mgmt-empty"><i class="fas fa-chalkboard-teacher d-block"></i><p class="mb-0">No faculty yet. Add above!</p></div>
+      {% endif %}
     </div>
+  </div>
 </div>
-
 {% endblock %}

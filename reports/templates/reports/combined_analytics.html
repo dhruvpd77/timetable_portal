@@ -82,8 +82,8 @@
 <script>
   {% if total_lectures_keys and total_lectures_values %}
     // Parse JSON strings passed from view context
-    const facultyLabels = {{ total_lectures_keys|safe }};
-    const facultyData = {{ total_lectures_values|safe }};
+    const facultyLabels = JSON.parse('{{ total_lectures_keys|escapejs }}');
+    const facultyData = JSON.parse('{{ total_lectures_values|escapejs }}');
 
     const ctx1 = document.getElementById('facultyTotalLecturesChart').getContext('2d');
     new Chart(ctx1, {
@@ -112,7 +112,7 @@
   {% endif %}
 
   {% if slot_data %}
-    const slotDataRaw = {{ slot_data|safe }};
+    const slotDataRaw = JSON.parse('{{ slot_data|escapejs }}');
     // Extract unique days and slots
     const days = [...new Set(slotDataRaw.map(item => item.day))];
     const slots = [...new Set(slotDataRaw.map(item => item.slot))];

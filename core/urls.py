@@ -85,6 +85,14 @@ urlpatterns = [
     path('admin/delete-department/<int:department_id>/', views.delete_department, name='delete_department'),
     path('admin/delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
 
+    # Excel Leave Management
+    path("excel-leave-management/", views.excel_leave_management_view, name="excel_leave_management"),
+    path("excel-faculty-day-selection/", views.excel_faculty_day_selection_view, name="excel_faculty_day_selection"),
+    path("excel-leave-details/", views.excel_leave_details_view, name="excel_leave_details"),
+    path("excel-generate-temporary-timetable/", views.excel_generate_temporary_timetable_view, name="excel_generate_temporary_timetable"),
+    path("download-temporary-timetable-pdf/", views.download_temporary_timetable_pdf, name="download_temporary_timetable_pdf"),
+    path("clear-excel-session/", views.clear_excel_session_view, name="clear_excel_session"),
+
 ]
 
 

@@ -1,78 +1,91 @@
 {% extends 'core/base_logged_in.html' %}
 {% load static %}
-{% block title %}View Past Timetable{% endblock %}
-
 {% load custom_filters %}
-
+{% block title %}View Past Timetable - LJ University{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
-<div class="card shadow p-4">
-  <h4>🗂️ View Past Timetable</h4>
-  <form method="get" class="mb-4">
-    <label for="tt_id" class="form-label">Select Timetable:</label>
-    <select name="tt_id" id="tt_id" class="form-select" onchange="this.form.submit()">
-      <option value="">-- Select Timetable --</option>
-      {% for tt in timetables %}
-        <option value="{{ tt.id }}" {% if selected_tt and tt.id == selected_tt.id %}selected{% endif %}>
-          {{ tt.name }} ({{ tt.created_at|date:'d M Y H:i' }})
-        </option>
-      {% endfor %}
-    </select>
-  </form>
-
-  {% if selected_tt %}
-    {% if days_order and slots_order and batches %}
-      <div class="table-responsive">
-        <table class="table table-bordered align-middle text-center">
-          <thead>
-            <tr>
-              <th rowspan="2">Day</th>
-              <th rowspan="2">Batch</th>
-              <th colspan="{{ slots_order|length }}">Time Slots</th>
-            </tr>
-            <tr>
-              {% for slot in slots_order %}
-                <th>{{ slot }}</th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for day in days_order %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-action { padding: 0.5rem 1rem; border-radius: 10px; font-weight: 500; text-decoration: none; display: inline-block; margin: 0.25rem; transition: all 0.2s; }
+  .btn-action:hover { transform: translateY(-2px); }
+  .timetable-table { font-size: 0.9rem; }
+  .timetable-table th, .timetable-table td { vertical-align: middle !important; }
+  .download-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  @media (max-width: 767px) { .timetable-table { font-size: 0.75rem; } .download-btns { flex-direction: column; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-folder-open me-2"></i>View Past Timetable</h1>
+      <p class="mgmt-page-subtitle">Select and view saved timetables.</p>
+    </div>
+    <a href="{% url 'department_time_settings' %}" class="btn btn-outline-secondary" style="border-radius:10px;padding:0.5rem 1rem;"><i class="fas fa-arrow-left me-1"></i>Back to Dashboard</a>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <form method="get" class="mgmt-form mb-4">
+        <label for="tt_id" class="form-label">Select Timetable</label>
+        <select name="tt_id" id="tt_id" class="form-select" style="max-width: 400px;" onchange="this.form.submit()">
+          <option value="">-- Select Timetable --</option>
+          {% for tt in timetables %}
+          <option value="{{ tt.id }}" {% if selected_tt and tt.id == selected_tt.id %}selected{% endif %}>{{ tt.name }} ({{ tt.created_at|date:'d M Y H:i' }})</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% if selected_tt %}
+        {% if days_order and slots_order and batches %}
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered timetable-table align-middle text-center">
+            <thead class="table-light">
+              <tr>
+                <th rowspan="2">Day</th>
+                <th rowspan="2">Batch</th>
+                <th colspan="{{ slots_order|length }}">Time Slots</th>
+              </tr>
+              <tr>{% for slot in slots_order %}<th>{{ slot }}</th>{% endfor %}</tr>
+            </thead>
+            <tbody>
+              {% for day in days_order %}
               {% for batch in batches %}
-                <tr>
-                  {% if forloop.first %}
-                    <td rowspan="{{ batches|length }}">{{ day }}</td>
-                  {% endif %}
-                  <td><strong>{{ batch }}</strong></td>
-                  {% for slot in slots_order %}
-                    <td>
-                      {{ grid|get_item:day|get_item:slot|get_item:batch|default:"-" }}
-                    </td>
-                  {% endfor %}
-                </tr>
+              <tr>
+                {% if forloop.first %}<td rowspan="{{ batches|length }}">{{ day }}</td>{% endif %}
+                <td><strong>{{ batch }}</strong></td>
+                {% for slot in slots_order %}
+                <td>
+                  {% with day_data=grid|get_item:day %}
+                  {% with slot_data=day_data|get_item:slot %}
+                  {{ slot_data|get_item:batch|default:"-"|safe }}
+                  {% endwith %}
+                  {% endwith %}
+                </td>
+                {% endfor %}
+              </tr>
               {% endfor %}
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <div class="my-3 d-flex gap-2">
-      <a href="{% url 'edit_timetable' selected_tt.id %}" class="btn btn-warning mb-3">✏️ Edit This Timetable</a>
-      </div>
-      
-      <div class="my-3 d-flex gap-2">
-        <a href="?tt_id={{ selected_tt.id }}&download=facultywise" class="btn btn-outline-primary">
-    👩‍🏫 Download Faculty-Wise Timetables
-</a>
-<a  href="?tt_id={{ selected_tt.id }}&download=facultywisepdf">📄 Download Faculty-wise Timetable (PDF)</a>
-
-
-        <a href="?tt_id={{ selected_tt.id }}&download=excel" class="btn btn-outline-success">⬇️ Download as Excel</a>
-        <a href="?tt_id={{ selected_tt.id }}&download=csv" class="btn btn-outline-secondary">⬇️ Download as CSV</a>
-        <a href="?tt_id={{ selected_tt.id }}&download=pdf" class="btn btn-outline-danger">⬇️ Download as PDF</a>
-      </div>
-    {% else %}
-      <div class="alert alert-warning">No data to display for this timetable.</div>
-    {% endif %}
-  {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <a href="{% url 'edit_timetable' selected_tt.id %}" class="btn btn-warning btn-action"><i class="fas fa-edit me-1"></i>Edit This Timetable</a>
+        </div>
+        <div class="download-btns">
+          <a href="?tt_id={{ selected_tt.id }}&download=facultywise" class="btn btn-outline-primary btn-action"><i class="fas fa-user-graduate me-1"></i>Faculty-Wise Excel</a>
+          <a href="?tt_id={{ selected_tt.id }}&download=facultywisepdf" class="btn btn-outline-primary btn-action"><i class="fas fa-file-pdf me-1"></i>Faculty-Wise PDF</a>
+          <a href="?tt_id={{ selected_tt.id }}&download=excel" class="btn btn-outline-success btn-action"><i class="fas fa-file-excel me-1"></i>Excel</a>
+          <a href="?tt_id={{ selected_tt.id }}&download=csv" class="btn btn-outline-secondary btn-action"><i class="fas fa-file-csv me-1"></i>CSV</a>
+          <a href="?tt_id={{ selected_tt.id }}&download=pdf" class="btn btn-outline-danger btn-action"><i class="fas fa-file-pdf me-1"></i>PDF</a>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">No data for this timetable.</div>
+        {% endif %}
+      {% else %}
+      <p class="text-muted text-center py-4">Select a timetable from the dropdown above.</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

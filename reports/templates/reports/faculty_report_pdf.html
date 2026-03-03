@@ -1,0 +1,67 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Faculty Timetable - {{ faculty }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 11px; margin: 15px; color: #1e293b; }
+        h1 { text-align: center; color: #1e3a5f; font-size: 18px; margin-bottom: 5px; }
+        h2 { text-align: center; color: #2563eb; font-size: 14px; margin-top: 0; margin-bottom: 15px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; border: 1px solid #1e293b; }
+        th { background-color: #2563eb; color: white; padding: 8px 6px; border: 1px solid #1e293b; border-bottom: 2px solid #1e293b; text-align: center; font-weight: 600; }
+        td { border: 1px solid #1e293b; padding: 6px 8px; vertical-align: middle; text-align: center; }
+        tr.day-row td { background-color: #f8fafc; }
+        tr.batch-row td { background-color: #ffffff; }
+        tr.day-last-row td { border-bottom: 4px solid #0f172a; }
+        .day-cell { font-weight: bold; color: #1e3a5f; background-color: #e0f2fe !important; }
+        .batch-cell { font-weight: bold; color: #0f172a; }
+        .subject { font-weight: 600; color: #0369a1; }
+        .room-lab { font-size: 9px; color: #64748b; }
+        .empty { color: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <h1>{{ college }}</h1>
+    <h2>Department: {{ department }} | Timetable: {{ timetable }}</h2>
+    <h2 style="color:#16a34a;">Faculty: {{ faculty }}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Batch</th>
+                {% for slot in slots_order %}
+                <th>{{ slot }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in days_order %}
+            {% if day_batches|get_item:day %}
+            {% for batch in day_batches|get_item:day %}
+            <tr class="{% if forloop.first %}day-row{% else %}batch-row{% endif %} {% if forloop.last %}day-last-row{% endif %}">
+                {% if forloop.first %}
+                <td rowspan="{{ day_batches|get_item:day|length }}" class="day-cell">{{ day }}</td>
+                {% endif %}
+                <td class="batch-cell">{{ batch }}</td>
+                {% for slot in slots_order %}
+                {% with cell=report_grid|get_item:day|get_item:slot|get_item:batch %}
+                <td>
+                    {% if cell and cell.subject %}
+                    <span class="subject">{{ cell.subject }}</span>
+                    {% if cell.room_lab %}<br><span class="room-lab">{{ cell.room_lab }}</span>{% endif %}
+                    {% else %}
+                    <span class="empty">–</span>
+                    {% endif %}
+                </td>
+                {% endwith %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

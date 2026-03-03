@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Analytics Report - {{ college }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2rem;
+        }
+        
+        .section {
+            margin: 30px 0;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+        }
+        
+        .table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .faculty-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .faculty-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .faculty-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .faculty-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .conflict-alert {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success-metric {
+            background: #11998e;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Analytics Report</h1>
+        <p>{{ college }} - {{ selected_departments }}</p>
+        <p>Generated on: {{ "now"|date:"F d, Y H:i" }}</p>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="section">
+        <h2 class="section-title">📈 Executive Summary</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">{{ analytics_data.efficiency_metrics.faculty_count }}</div>
+                <div class="metric-label">Total Faculty</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ analytics_data.efficiency_metrics.subject_count }}</div>
+                <div class="metric-label">Total Subjects</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ analytics_data.efficiency_metrics.total_entries }}</div>
+                <div class="metric-label">Total Lectures</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ analytics_data.efficiency_metrics.utilization_rate|floatformat:1 }}%</div>
+                <div class="metric-label">Utilization Rate</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ analytics_data.efficiency_metrics.workload_balance|floatformat:2 }}</div>
+                <div class="metric-label">Workload Balance</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ analytics_data.conflict_analysis.total_conflicts }}</div>
+                <div class="metric-label">Conflicts</div>
+            </div>
+        </div>
+        
+        {% if analytics_data.conflict_analysis.total_conflicts > 0 %}
+            <div class="conflict-alert">
+                ⚠️ {{ analytics_data.conflict_analysis.total_conflicts }} scheduling conflicts detected and need attention
+            </div>
+        {% else %}
+            <div class="success-metric">
+                ✅ No scheduling conflicts detected
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Faculty Workload Analysis -->
+    <div class="section page-break">
+        <h2 class="section-title">👥 Faculty Workload Analysis</h2>
+        <div class="faculty-grid">
+            {% for faculty, stats in analytics_data.faculty_workload.items %}
+                <div class="faculty-card">
+                    <div class="faculty-name">{{ faculty }}</div>
+                    <div class="faculty-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.total_lectures }}</div>
+                            <div class="stat-label">Total Lectures</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.subject_count }}</div>
+                            <div class="stat-label">Subjects</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.batch_count }}</div>
+                            <div class="stat-label">Batches</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.avg_lectures_per_day|floatformat:1 }}</div>
+                            <div class="stat-label">Avg/Day</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Subject Distribution -->
+    <div class="section page-break">
+        <h2 class="section-title">📚 Subject Distribution Analysis</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Total Lectures</th>
+                    <th>Faculty Count</th>
+                    <th>Batch Count</th>
+                    <th>Room Count</th>
+                    <th>Lab Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject, stats in analytics_data.subject_distribution.items %}
+                    <tr>
+                        <td><strong>{{ subject }}</strong></td>
+                        <td>{{ stats.total_lectures }}</td>
+                        <td>{{ stats.faculty_count }}</td>
+                        <td>{{ stats.batch_count }}</td>
+                        <td>{{ stats.room_count }}</td>
+                        <td>{{ stats.lab_count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Room & Lab Utilization -->
+    <div class="section page-break">
+        <h2 class="section-title">🏢 Room & Lab Utilization</h2>
+        
+        <h3>Room Utilization</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Room</th>
+                    <th>Total Usage</th>
+                    <th>Subject Count</th>
+                    <th>Faculty Count</th>
+                    <th>Batch Count</th>
+                    <th>Utilization Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room, stats in analytics_data.room_lab_utilization.rooms.items %}
+                    <tr>
+                        <td><strong>{{ room }}</strong></td>
+                        <td>{{ stats.total_usage }}</td>
+                        <td>{{ stats.subject_count }}</td>
+                        <td>{{ stats.faculty_count }}</td>
+                        <td>{{ stats.batch_count }}</td>
+                        <td>{{ stats.utilization_rate|floatformat:1 }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Lab Utilization</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Lab</th>
+                    <th>Total Usage</th>
+                    <th>Subject Count</th>
+                    <th>Faculty Count</th>
+                    <th>Batch Count</th>
+                    <th>Utilization Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lab, stats in analytics_data.room_lab_utilization.labs.items %}
+                    <tr>
+                        <td><strong>{{ lab }}</strong></td>
+                        <td>{{ stats.total_usage }}</td>
+                        <td>{{ stats.subject_count }}</td>
+                        <td>{{ stats.faculty_count }}</td>
+                        <td>{{ stats.batch_count }}</td>
+                        <td>{{ stats.utilization_rate|floatformat:1 }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Batch Workload Analysis -->
+    <div class="section page-break">
+        <h2 class="section-title">🎓 Batch Workload Analysis</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>Total Lectures</th>
+                    <th>Subject Count</th>
+                    <th>Faculty Count</th>
+                    <th>Room Count</th>
+                    <th>Lab Count</th>
+                    <th>Avg Lectures/Day</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch, stats in analytics_data.batch_workload.items %}
+                    <tr>
+                        <td><strong>{{ batch }}</strong></td>
+                        <td>{{ stats.total_lectures }}</td>
+                        <td>{{ stats.subject_count }}</td>
+                        <td>{{ stats.faculty_count }}</td>
+                        <td>{{ stats.room_count }}</td>
+                        <td>{{ stats.lab_count }}</td>
+                        <td>{{ stats.avg_lectures_per_day|floatformat:1 }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Faculty Availability Patterns -->
+    <div class="section page-break">
+        <h2 class="section-title">⏰ Faculty Availability Patterns</h2>
+        <div class="faculty-grid">
+            {% for faculty, stats in analytics_data.faculty_availability_patterns.items %}
+                <div class="faculty-card">
+                    <div class="faculty-name">{{ faculty }}</div>
+                    <div class="faculty-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.availability_percentage|floatformat:1 }}%</div>
+                            <div class="stat-label">Availability</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.total_free_slots }}</div>
+                            <div class="stat-label">Free Slots</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ stats.total_busy_slots }}</div>
+                            <div class="stat-label">Busy Slots</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Conflict Analysis -->
+    {% if analytics_data.conflict_analysis.total_conflicts > 0 %}
+    <div class="section page-break">
+        <h2 class="section-title">⚠️ Conflict Analysis</h2>
+        <div class="conflict-alert">
+            <h3>Total Conflicts: {{ analytics_data.conflict_analysis.total_conflicts }}</h3>
+            <ul>
+                <li>Resource Conflicts: {{ analytics_data.conflict_analysis.resource_conflicts }}</li>
+                <li>Faculty Conflicts: {{ analytics_data.conflict_analysis.faculty_conflicts }}</li>
+                <li>Batch Conflicts: {{ analytics_data.conflict_analysis.batch_conflicts }}</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>This report was generated automatically by the Timetable Management System</p>
+        <p>For questions or support, please contact the system administrator</p>
+    </div>
+</body>
+</html>

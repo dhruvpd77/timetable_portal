@@ -1,0 +1,143 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Temporary Timetable - {{ selected_faculty }} - {{ selected_day }} - LJ University{% endblock %}
+{% block content %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #16a34a; }
+  .btn-action { padding: 0.5rem 1rem; border-radius: 10px; font-weight: 500; text-decoration: none; display: inline-block; margin: 0.25rem; transition: all 0.2s; }
+  .btn-action:hover { transform: translateY(-2px); }
+  .info-card { background: #f8fafc; border-radius: 12px; padding: 1rem; text-align: center; border: 1px solid #e2e8f0; height: 100%; }
+  .lecture-cell { padding: 8px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; min-height: 70px; display: flex; flex-direction: column; justify-content: center; }
+  .lecture-cell.reassigned { background: #fef2f2; border-color: #fecaca; border-width: 2px; }
+  .reassignment-item { background: #fffbeb; border-radius: 10px; padding: 1rem; border: 1px solid #fde68a; }
+  .timetable-table { font-size: 0.85rem; }
+  @media (max-width: 767px) { .timetable-table { font-size: 0.75rem; } .btn-group { flex-direction: column; } }
+  @media print { .no-print { display: none !important; } .lecture-cell { background: #fff !important; border: 1px solid #000 !important; } .lecture-cell.reassigned { background: #ffe6e6 !important; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4 no-print">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-calendar-alt me-2"></i>Temporary Timetable</h1>
+      <p class="mgmt-page-subtitle">Leave replacements for {{ selected_faculty }} on {{ selected_day }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'excel_leave_details' %}" class="btn btn-outline-secondary btn-action"><i class="fas fa-arrow-left me-1"></i>Back to Reassignments</a>
+      <a href="{% url 'excel_leave_management' %}" class="btn btn-outline-primary btn-action"><i class="fas fa-home me-1"></i>Start Over</a>
+    </div>
+  </div>
+  <div class="row g-3 mb-4 no-print">
+    <div class="col-6 col-md-3">
+      <div class="info-card">
+        <i class="fas fa-user fa-2x text-primary mb-2"></i>
+        <h6 class="mb-0">{{ selected_faculty }}</h6>
+        <small class="text-muted">Faculty on Leave</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="info-card">
+        <i class="fas fa-calendar-day fa-2x text-success mb-2"></i>
+        <h6 class="mb-0">{{ selected_day }}</h6>
+        <small class="text-muted">Leave Day</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="info-card">
+        <i class="fas fa-exchange-alt fa-2x text-warning mb-2"></i>
+        <h6 class="mb-0">{{ reassignments|length }}</h6>
+        <small class="text-muted">Reassignments</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="info-card">
+        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+        <h6 class="mb-0">Ready</h6>
+        <small class="text-muted">Temporary Timetable</small>
+      </div>
+    </div>
+  </div>
+  <div class="card mgmt-card mb-4">
+    <div class="card-body p-4">
+      <h6 class="fw-bold mb-3"><i class="fas fa-table me-2"></i>Temporary Timetable for {{ selected_day }}</h6>
+      <div class="table-responsive">
+        <table class="table table-bordered timetable-table align-middle text-center">
+          <thead class="table-light">
+            <tr>
+              <th>Day / Batch</th>
+              {% for time_slot in time_slots %}
+              <th>{{ time_slot }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for day, batches in temporary_timetable.items %}
+            {% if day == selected_day %}
+            {% for batch, lectures in batches.items %}
+            <tr>
+              <td class="fw-bold">{{ day }} / {{ batch }}</td>
+              {% for time_slot in time_slots %}
+              <td>
+                {% for lecture in lectures %}
+                {% if lecture.time_slot == time_slot %}
+                <div class="lecture-cell {% if lecture.is_reassigned %}reassigned{% endif %}">
+                  <div class="{% if lecture.is_reassigned %}text-danger fw-bold{% endif %}">{{ lecture.subject }}</div>
+                  <div class="{% if lecture.is_reassigned %}text-danger fw-bold{% else %}text-primary{% endif %}">
+                    {{ lecture.faculty }}{% if lecture.is_reassigned %} <i class="fas fa-exchange-alt text-warning ms-1"></i>{% endif %}
+                  </div>
+                  <div class="small text-muted">{{ lecture.room_lab }}</div>
+                  {% if lecture.is_reassigned %}
+                  <small class="text-muted"><i class="fas fa-user-minus"></i> {{ lecture.original_faculty }} ({{ lecture.original_subject }})</small>
+                  {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% if reassignments %}
+  <div class="card mgmt-card mb-4">
+    <div class="card-body p-4">
+      <h6 class="fw-bold mb-3"><i class="fas fa-list me-2"></i>Reassignments Summary</h6>
+      <div class="row g-3">
+        {% for key, replacement in reassignments.items %}
+        <div class="col-12 col-md-6">
+          <div class="reassignment-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ key }}</strong>
+              <br><small class="text-muted">{{ selected_faculty }} → {{ replacement }}</small>
+            </div>
+            <i class="fas fa-check-circle fa-2x text-success"></i>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="card mgmt-card no-print">
+    <div class="card-body p-4 text-center">
+      <h6 class="fw-bold mb-3">What would you like to do next?</h6>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <button type="button" class="btn btn-success btn-action" onclick="window.print()"><i class="fas fa-print me-1"></i>Print</button>
+        <a href="{% url 'download_temporary_timetable_pdf' %}" class="btn btn-danger btn-action"><i class="fas fa-file-pdf me-1"></i>Download PDF</a>
+        <button type="button" class="btn btn-primary btn-action" onclick="downloadExcel()"><i class="fas fa-file-excel me-1"></i>Download Excel</button>
+        <a href="{% url 'excel_leave_management' %}" class="btn btn-outline-primary btn-action"><i class="fas fa-plus me-1"></i>Create Another Leave</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function downloadExcel() {
+  alert('Excel download functionality would be implemented here. The temporary timetable data is ready for export.');
+}
+</script>
+{% endblock %}

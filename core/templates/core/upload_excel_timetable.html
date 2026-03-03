@@ -1,67 +1,50 @@
 {% extends 'core/base_logged_in.html' %}
 {% load static %}
+{% block title %}Upload Timetable - LJ University{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fa fa-upload"></i> Upload Timetable (Excel)</h4>
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-upload { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .info-card { background: #f0f9ff; border-radius: 10px; padding: 1rem 1.25rem; border: 1px solid #bae6fd; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="mgmt-page-title"><i class="fas fa-file-excel me-2"></i>Upload Timetable (Excel)</h1>
+    <p class="mgmt-page-subtitle">Upload your timetable from an Excel file.</p>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <div class="info-card mb-4">
+        <h6 class="fw-bold mb-2"><i class="fas fa-info-circle me-2"></i>Excel Format</h6>
+        <ul class="mb-0 small">
+          <li><strong>Time slots:</strong> e.g. 8:45 to 9:45, 9:45 to 10:45</li>
+          <li><strong>Entry format:</strong> Subject (Faculty) (Room/Lab) or Faculty-Subject-Room</li>
+          <li><strong>Batches:</strong> Header row with A1, A2, B1, etc.</li>
+        </ul>
+      </div>
+      <form method="post" enctype="multipart/form-data" class="mgmt-form">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label for="{{ form.name.id_for_label }}" class="form-label">Timetable Name</label>
+            {{ form.name }}
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="{{ form.file.id_for_label }}" class="form-label">Excel File</label>
+            {{ form.file }}
+          </div>
         </div>
-        <div class="card-body">
-
-            <!-- Instructions Section -->
-            <div class="alert alert-info">
-                <h5 class="mb-2"><i class="fa fa-info-circle"></i> Instructions for Excel Format</h5>
-
-                <ul>
-                    <li class="text-dark font-weight-bold">
-                        <strong>Time Slot Format:</strong>
-                        <br>
-                        <span class="text-dark">Each timing cell should be written exactly like:</span><br>
-                        <span class="mb-2">8:45 to 9:45</span>
-                        <span class="mb-2">9:45 to 10:45</span>
-                        <span class="mb-2">11:30 to 12:30</span>
-                        <span class="mb-2">12:30 to 13:30</span>
-                        <span class="mb-2">13:45 to 14:45</span>
-                    </li>
-                    <li>
-                        <strong>Assignment (Entry) Format:</strong>
-                        <br>
-                        For each cell (for a batch/time/slot), use:
-                        <br>
-                        <span class="mb-2">FacultyName-SubjectName-RoomOrLab</span>
-                        <br>
-                        <b>Examples:</b>
-                        <ul>
-                            <li><span class="mb-2">MGV-DM-302</span> <small>(Faculty: MGV, Subject: DM, Room: 302)</small></li>
-                            <li><span class="mb-2">KMS-PY_2-406-2(L)</span> <small>(Faculty: KMS, Subject: PY_2, Lab: 406-2, mark lab with (L))</small></li>
-                        </ul>
-                        <span class="text-muted">Use <b>(L)</b> after Room/Lab code to indicate a Lab. Room and Lab naming should match database entries exactly.</span>
-                    </li>
-                    <li>
-                        <strong>Batches:</strong> Your header (top row after "Day" and "Timing") should include batch names like
-                        <span class="mb-2">A1</span>, <span class="mb-2">A2</span>, <span class="mb-2">B1</span>, <span class="mb-2">B2</span> etc.
-                        <br>
-                        <span class="text-muted">Only columns with letters as prefix and digits as suffix (e.g. <b>A1, B3, C12</b>) will be detected as batches.</span>
-                    </li>
-                </ul>
-                
-
-            <!-- Upload Form -->
-            <form method="post" enctype="multipart/form-data" class="mt-3">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ form.name.label_tag }}
-                    {{ form.name }}
-                </div>
-                <div class="form-group">
-                    {{ form.file.label_tag }}
-                    {{ form.file }}
-                </div>
-                <button type="submit" class="btn btn-primary btn-block mt-2">
-                    <i class="fa fa-upload"></i> Upload Timetable
-                </button>
-            </form>
+        <div class="mt-4">
+          <button type="submit" class="btn btn-upload"><i class="fas fa-upload me-2"></i>Upload Timetable</button>
         </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

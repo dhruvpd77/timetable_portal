@@ -1,88 +1,129 @@
 {% extends 'core/base_logged_in.html' %}
+{% block title %}Visiting Faculty Blocks - LJ University{% endblock %}
 {% block content %}
-<div class="container mt-4">
-    <h3>🛑 Visiting Faculty Slot Blocker</h3>
-
-    <form method="get" class="row g-3 mt-3 mb-4">
-        <div class="col-md-4">
-            <label><b>Select Faculty (from your department)</b></label>
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #dc2626; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control, .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus, .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-block-mgmt { background: linear-gradient(135deg, #dc2626, #ef4444); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-block-mgmt:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,0.4); color: #fff; }
+  .mgmt-list-header { font-weight: 700; color: #1e3a5f; font-size: 1.1rem; margin: 1.5rem 0 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+  .mgmt-item-card { background: #f8fafc; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; }
+  .mgmt-item-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .mgmt-empty { text-align: center; padding: 2rem; color: #64748b; }
+  .mgmt-empty i { font-size: 3rem; opacity: 0.4; margin-bottom: 0.5rem; }
+  @media (max-width: 767px) { .mgmt-form .col-md-4 { width: 100%; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="mgmt-page-title"><i class="fas fa-user-clock me-2"></i>Visiting Faculty Blocked Slots</h1>
+    <p class="mgmt-page-subtitle">Block slots when faculty are engaged in other departments.</p>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <form method="get" class="mgmt-form">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label">Select Faculty</label>
             <select name="faculty" class="form-select" onchange="this.form.submit()">
-                <option value="">-- Select Faculty --</option>
-                {% for f in faculties %}
-                    <option value="{{ f.short_name }}" {% if f.short_name == selected_faculty_name %}selected{% endif %}>{{ f.short_name }}</option>
-                {% endfor %}
+              <option value="">-- Select Faculty --</option>
+              {% for f in faculties %}
+              <option value="{{ f.short_name }}" {% if f.short_name == selected_faculty_name %}selected{% endif %}>{{ f.short_name }}</option>
+              {% endfor %}
             </select>
-        </div>
-        {% if selected_faculty_name %}
-        <div class="col-md-4">
-            <label><b>Select Engaged Department</b></label>
+          </div>
+          {% if selected_faculty_name %}
+          <div class="col-12 col-md-4">
+            <label class="form-label">Engaged Department</label>
             <select name="engaged_department" class="form-select" onchange="this.form.submit()">
-                <option value="">-- Select Department --</option>
-                {% for d in engaged_departments %}
-                    <option value="{{ d.id }}" {% if d.id|stringformat:"s" == selected_ext_dept_id %}selected{% endif %}>{{ d.name }}</option>
-                {% endfor %}
+              <option value="">-- Select Department --</option>
+              {% for d in engaged_departments %}
+              <option value="{{ d.id }}" {% if d.id|stringformat:"s" == selected_ext_dept_id %}selected{% endif %}>{{ d.name }}</option>
+              {% endfor %}
             </select>
-        </div>
-        {% endif %}
-        {% if selected_ext_dept_id %}
-        <div class="col-md-4">
-            <label><b>Select Timetable</b></label>
+          </div>
+          {% endif %}
+          {% if selected_ext_dept_id %}
+          <div class="col-12 col-md-4">
+            <label class="form-label">Select Timetable</label>
             <select name="engaged_timetable" class="form-select" onchange="this.form.submit()">
-                <option value="">-- Select Timetable --</option>
-                {% for tt in engaged_timetables %}
-                    <option value="{{ tt.id }}" {% if tt.id|stringformat:"s" == selected_tt_id %}selected{% endif %}>{{ tt.name }} ({{ tt.created_at|date:"d M Y" }})</option>
-                {% endfor %}
+              <option value="">-- Select Timetable --</option>
+              {% for tt in engaged_timetables %}
+              <option value="{{ tt.id }}" {% if tt.id|stringformat:"s" == selected_tt_id %}selected{% endif %}>{{ tt.name }} ({{ tt.created_at|date:"d M Y" }})</option>
+              {% endfor %}
             </select>
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
-    </form>
+      </form>
 
-    {% if show_slots %}
-    <form method="post">
+      {% if show_slots %}
+      <form method="post" class="mt-4">
         {% csrf_token %}
         <input type="hidden" name="engaged_department_id" value="{{ selected_ext_dept_id }}">
         <input type="hidden" name="engaged_timetable_id" value="{{ selected_tt_id }}">
         <input type="hidden" name="selected_faculty_name" value="{{ selected_faculty_name }}">
-
-        <h5>Blocked Slots from Selected Timetable:</h5>
-        <table class="table table-bordered">
-            <thead><tr><th>Day</th><th>Time</th></tr></thead>
+        <h6 class="mb-2">Blocked Slots from Selected Timetable:</h6>
+        <div class="table-responsive mb-3">
+          <table class="table table-sm table-bordered">
+            <thead class="table-light"><tr><th>Day</th><th>Time</th></tr></thead>
             <tbody>
-                {% for day, time in blocked_slots %}
-                    <tr><td>{{ day }}</td><td>{{ time }}</td></tr>
-                {% endfor %}
+              {% for day, time in blocked_slots %}
+              <tr><td>{{ day }}</td><td>{{ time }}</td></tr>
+              {% endfor %}
             </tbody>
-        </table>
-        <button type="submit" name="block_slots" class="btn btn-danger">➕ Block These Slots</button>
-    </form>
-    {% endif %}
+          </table>
+        </div>
+        <button type="submit" name="block_slots" class="btn btn-block-mgmt"><i class="fas fa-ban me-2"></i>Block These Slots</button>
+      </form>
+      {% endif %}
 
-    <hr>
-    <h4>📋 Existing Blocked Visiting Faculty Slots (Your Dept)</h4>
-    <table class="table table-striped table-bordered">
-        <thead><tr><th>Faculty</th><th>Main Dept</th><th>Blocked Slots</th><th>Action</th></tr></thead>
-        <tbody>
-            {% for b in all_blocks %}
-            <tr>
-                <td>{{ b.faculty.short_name }}</td>
-                <td>{{ b.main_department.name }}</td>
-                <td>
-                    {% for day_time in b.get_blocked_slots %}
-                        {{ day_time.0 }} {{ day_time.1 }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
-                <td>
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="delete_block_id" value="{{ b.id }}">
-                        <button class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+      <h5 class="mgmt-list-header"><i class="fas fa-list me-2"></i>Existing Blocked Visiting Faculty Slots</h5>
+      {% if all_blocks %}
+        <div class="d-none d-md-block">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light"><tr><th>Faculty</th><th>Main Dept</th><th>Blocked Slots</th><th class="text-end">Action</th></tr></thead>
+              <tbody>
+                {% for b in all_blocks %}
+                <tr>
+                  <td>{{ b.faculty.short_name }}</td>
+                  <td>{{ b.main_department.name }}</td>
+                  <td>{% for day_time in b.get_blocked_slots %}{{ day_time.0 }} {{ day_time.1 }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                  <td class="text-end">
+                    <form method="post" class="d-inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="delete_block_id" value="{{ b.id }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?');"><i class="fas fa-trash"></i></button>
                     </form>
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">No visiting faculty blocks yet.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="d-md-none">
+          {% for b in all_blocks %}
+          <div class="mgmt-item-card">
+            <div class="fw-bold mb-1">{{ b.faculty.short_name }}</div>
+            <div class="small text-muted mb-2">{{ b.main_department.name }}</div>
+            <div class="small mb-2">{% for day_time in b.get_blocked_slots %}{{ day_time.0 }} {{ day_time.1 }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>
+            <form method="post" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="delete_block_id" value="{{ b.id }}">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete?');"><i class="fas fa-trash me-1"></i>Delete</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mgmt-empty"><i class="fas fa-user-clock d-block"></i><p class="mb-0">No visiting faculty blocks yet.</p></div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

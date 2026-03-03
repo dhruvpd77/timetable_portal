@@ -1,80 +1,51 @@
 {% extends 'core/base_logged_in.html' %}
-
-{% block title %}⚙️ Timetable Type Settings{% endblock %}
-
+{% block title %}Timetable Type - LJ University{% endblock %}
 {% block content %}
-<div class="container py-4">
-    <h3 class="mb-3 text-primary">⚙️ Timetable Type Configuration</h3>
-    
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Select Slot Type</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.slot_type.id_for_label }}" class="form-label">
-                                <strong>Choose how your timetable slots should be organized:</strong>
-                            </label>
-                            {{ form.slot_type }}
-                            {% if form.slot_type.errors %}
-                                <div class="text-danger">
-                                    {{ form.slot_type.errors }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <button type="submit" class="btn btn-primary">💾 Save Settings</button>
-                    </form>
-                </div>
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control, .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus, .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-save { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .info-box { background: #f8fafc; border-radius: 10px; padding: 1rem; border: 1px solid #e2e8f0; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="mgmt-page-title"><i class="fas fa-cog me-2"></i>Timetable Type</h1>
+    <p class="mgmt-page-subtitle">Configure how timetable slots are organized.</p>
+  </div>
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+      <div class="card mgmt-card">
+        <div class="card-body p-4">
+          <form method="post" class="mgmt-form">
+            {% csrf_token %}
+            <div class="mb-4">
+              <label for="{{ form.slot_type.id_for_label }}" class="form-label">Slot Type</label>
+              {{ form.slot_type }}
+              {% if form.slot_type.errors %}<div class="text-danger small">{{ form.slot_type.errors }}</div>{% endif %}
             </div>
+            <button type="submit" class="btn btn-save"><i class="fas fa-save me-2"></i>Save Settings</button>
+          </form>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">ℹ️ Current Setting</h6>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2">
-                        <strong>Current Type:</strong><br>
-                        <span class="badge bg-success fs-6">{{ timetable_type.get_slot_type_display }}</span>
-                    </p>
-                    <hr>
-                    <p class="mb-2">
-                        <strong>Last Updated:</strong><br>
-                        <small class="text-muted">{{ timetable_type.updated_at|date:"M d, Y H:i" }}</small>
-                    </p>
-                </div>
-            </div>
-            
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h6 class="mb-0">📋 Slot Type Details</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <h6 class="text-success">✅ 1 Hour Slot</h6>
-                        <small class="text-muted">
-                            • Standard 1-hour time slots<br>
-                            • Labs get 2 consecutive hours<br>
-                            • Theory lectures get 1 hour each
-                        </small>
-                    </div>
-                    <div>
-                        <h6 class="text-info">🔄 2 Hour Pair Slot</h6>
-                        <small class="text-muted">
-                            • Labs get 2-hour slots<br>
-                            • Theory lectures get 2-hour slots<br>
-                            • Same subject sessions grouped together<br>
-                            • Fallback to 1-hour for worst cases
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+    <div class="col-12 col-lg-4">
+      <div class="card mgmt-card mb-4">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-2">Current Setting</h6>
+          <p class="mb-2"><span class="badge bg-success fs-6">{{ timetable_type.get_slot_type_display }}</span></p>
+          <small class="text-muted">Updated: {{ timetable_type.updated_at|date:"M d, Y H:i" }}</small>
+        </div>
+      </div>
+      <div class="info-box">
+        <h6 class="text-info mb-2">2 Hour Pair Slot</h6>
+        <small class="text-muted">Labs and theory get 2-hour slots. Same subject grouped for efficient scheduling.</small>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

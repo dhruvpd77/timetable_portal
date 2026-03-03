@@ -3,7 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.report_dashboard, name='report_dashboard'),  # Dashboard is the default reports/ route
-    path('faculty/', views.faculty_report, name='faculty_report'),  # Faculty report
+    path('faculty/', views.faculty_report, name='faculty_report'),
+    path('faculty/download/', views.faculty_report_download, name='faculty_report_download'),
     
     path('batch/', views.batch_timetable, name='batch_timetable'),
     path('batch/download/', views.batch_timetable_download, name='batch_timetable_download'),
@@ -24,6 +25,9 @@ urlpatterns = [
 
     path('combined-analytics/', views.combined_analytics, name='combined_analytics'),
     path('combined-analytics/download/', views.combined_analytics_download, name='combined_analytics_download'),
+
+    path('analytics-report/', views.analytics_report, name='analytics_report'),
+    path('analytics-report/download/', views.analytics_report_download, name='analytics_report_download'),
 
     path('spin-wheel/', views.spin_wheel, name='spin_wheel'),
 

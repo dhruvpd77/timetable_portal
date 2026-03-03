@@ -1,0 +1,116 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Leave Details - {{ selected_faculty }} - {{ selected_day }} - LJ University{% endblock %}
+{% block content %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control, .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus, .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-generate { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); color: #fff; }
+  .btn-back { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; }
+  .btn-back:hover { border-color: #94a3b8; color: #475569; }
+  .info-card { background: #f8fafc; border-radius: 12px; padding: 1.25rem; text-align: center; border: 1px solid #e2e8f0; height: 100%; }
+  .lecture-card { background: #f8fafc; border-radius: 12px; padding: 1.25rem; border-left: 4px solid #2563eb; margin-bottom: 1rem; transition: all 0.2s; }
+  .lecture-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+  .reassignment-section { background: #fff; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0; }
+  @media (max-width: 767px) { .lecture-card .row > div { margin-bottom: 1rem; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-user-clock me-2"></i>Leave Details</h1>
+      <p class="mgmt-page-subtitle">Assign replacement faculty for each lecture.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'excel_faculty_day_selection' %}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i>Back to Selection</a>
+      <a href="{% url 'excel_leave_management' %}" class="btn btn-back"><i class="fas fa-home me-1"></i>Start Over</a>
+    </div>
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="info-card">
+        <i class="fas fa-user fa-2x text-primary mb-2"></i>
+        <h5 class="mb-0">{{ selected_faculty }}</h5>
+        <small class="text-muted">Faculty Member</small>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="info-card">
+        <i class="fas fa-calendar-day fa-2x text-success mb-2"></i>
+        <h5 class="mb-0">{{ selected_day }}</h5>
+        <small class="text-muted">Leave Day</small>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="info-card">
+        <i class="fas fa-chalkboard-teacher fa-2x text-info mb-2"></i>
+        <h5 class="mb-0">{{ total_lectures }}</h5>
+        <small class="text-muted">Total Lectures</small>
+      </div>
+    </div>
+  </div>
+  {% if faculty_lectures %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="card mgmt-card">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-4"><i class="fas fa-exchange-alt me-2"></i>Lecture Reassignments</h6>
+        {% for lecture in faculty_lectures %}
+        <div class="lecture-card">
+          <div class="row align-items-start">
+            <div class="col-12 col-lg-8 mb-3 mb-lg-0">
+              <h6 class="text-primary fw-bold mb-2"><i class="fas fa-clock me-1"></i>{{ lecture.time_slot }}</h6>
+              <div class="row g-2">
+                <div class="col-12 col-sm-4"><strong>Batch:</strong> {{ lecture.batch }}</div>
+                <div class="col-12 col-sm-4"><strong>Subject:</strong> {{ lecture.subject }}</div>
+                <div class="col-12 col-sm-4"><strong>Room/Lab:</strong> {{ lecture.room_lab }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-4 mb-3 mb-lg-0">
+              <div class="reassignment-section">
+                <label class="form-label"><i class="fas fa-user-check me-1"></i>Replacement Faculty <span class="badge bg-primary">{{ lecture.available_faculty|length }}</span></label>
+                <select name="replacement_{{ lecture.batch }}_{{ lecture.time_slot }}" class="form-select">
+                  <option value="none">-- Select Replacement --</option>
+                  {% for faculty in lecture.available_faculty %}
+                  <option value="{{ faculty }}">{{ faculty }}</option>
+                  {% endfor %}
+                </select>
+                {% if not lecture.available_faculty %}<small class="text-danger">No available faculty</small>{% endif %}
+              </div>
+            </div>
+            <div class="col-12 col-lg-4">
+              <div class="reassignment-section">
+                <label class="form-label"><i class="fas fa-door-open me-1"></i>Room/Lab <span class="badge bg-success">{{ lecture.available_rooms_labs|length }}</span></label>
+                <select name="room_lab_{{ lecture.batch }}_{{ lecture.time_slot }}" class="form-select">
+                  <option value="none">-- Keep Original --</option>
+                  {% for room_lab in lecture.available_rooms_labs %}
+                  <option value="{{ room_lab }}">{{ room_lab }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-generate"><i class="fas fa-magic me-2"></i>Generate Temporary Timetable</button>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% else %}
+  <div class="card mgmt-card">
+    <div class="card-body p-5 text-center">
+      <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+      <h5>No Lectures Found</h5>
+      <p class="text-muted">{{ selected_faculty }} has no lectures scheduled for {{ selected_day }}.</p>
+      <a href="{% url 'excel_faculty_day_selection' %}" class="btn btn-primary"><i class="fas fa-arrow-left me-1"></i>Select Different Faculty/Day</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

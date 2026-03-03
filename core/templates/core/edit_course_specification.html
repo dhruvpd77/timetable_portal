@@ -1,24 +1,42 @@
 {% extends 'core/base_logged_in.html' %}
 {% load static %}
+{% block title %}Edit Course Specification - LJ University{% endblock %}
 {% block content %}
-{# Link to your external CSS file #}
-<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
-
-<div class="container py-4"> {# Added container and py-4 for consistent padding #}
-    <div class="card shadow"> {# Removed p-4 as padding is handled by card styling #}
-        <h3>Edit Course Specification</h3> {# Changed h4 to h3 for consistent heading style #}
-        <form method="post">
-            {% csrf_token %}
-            {# Render each form field individually within a form-group div for consistent styling #}
-            {% for field in form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                </div>
-            {% endfor %}
-            <button type="submit" class="btn btn-primary">Update</button>
-            <a href="{% url 'course_specification' %}" class="btn btn-secondary">Cancel</a>
-        </form>
+<style>
+  .edit-page-title { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .edit-page-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .edit-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .edit-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .edit-form .form-control, .edit-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .edit-form .form-control:focus, .edit-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-save-edit { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-save-edit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .btn-cancel-edit { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; }
+  .btn-cancel-edit:hover { border-color: #94a3b8; color: #475569; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="edit-page-title"><i class="fas fa-book me-2"></i>Edit Course Specification</h1>
+    <p class="edit-page-subtitle">Updating {{ spec.subject_name }}</p>
+  </div>
+  <div class="card edit-card">
+    <div class="card-body p-4">
+      <form method="post" class="edit-form">
+        {% csrf_token %}
+        <div class="row g-3">
+          {% for field in form %}
+          <div class="col-12 col-md-6">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button type="submit" class="btn btn-save-edit"><i class="fas fa-save me-2"></i>Update</button>
+          <a href="{% url 'course_specification' %}" class="btn btn-cancel-edit"><i class="fas fa-arrow-left me-2"></i>Cancel</a>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

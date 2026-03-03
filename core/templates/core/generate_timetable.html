@@ -2,86 +2,114 @@
 {% load static %}
 {% load custom_filters %}
 {% load unique_filter %}
-
+{% block title %}Generate Timetable - LJ University{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
-
-<div class="container py-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">📅 Department Timetable</h3>
-
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .btn-generate { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.75rem 2rem; border-radius: 10px; font-size: 1.1rem; transition: all 0.2s; }
+  .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .btn-save { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); color: #fff; }
+  .timetable-table { font-size: 0.9rem; }
+  .timetable-item { padding: 4px; }
+  .day-cell, .batch-cell { font-weight: 600; }
+  .slot-cell { min-width: 100px; vertical-align: middle; }
+  .timetable-name-input { max-width: 280px; border-radius: 10px; padding: 0.5rem 1rem; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="mgmt-page-title"><i class="fas fa-calendar-alt me-2"></i>Generate Timetable</h1>
+    <p class="mgmt-page-subtitle">Generate and save department timetable.</p>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <form method="post" class="text-center mb-4">
+        {% csrf_token %}
+        <button name="generate" type="submit" class="btn btn-generate"><i class="fas fa-magic me-2"></i>Generate Timetable</button>
+      </form>
+      {% if gen_error %}
+      <div class="alert alert-danger mb-4">
+        <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Timetable Generation Failed</h6>
+        <p class="mb-0">{{ gen_error }}</p>
+      </div>
+      {% if gen_reasons %}
+      <div class="card border-warning mb-4">
+        <div class="card-header bg-warning bg-opacity-25">
+          <h6 class="mb-0"><i class="fas fa-search me-2"></i>Likely Causes & How to Fix</h6>
         </div>
-
-        <form method="post" class="mb-4 text-center">
-            {% csrf_token %}
-            <button name="generate" type="submit" class="btn btn-primary large-button">
-                Generate Timetable
-            </button>
-        </form>
-
-        {% if timetable_by_day_slot %}
-            <div class="table-responsive">
-                <table class="table table-bordered timetable-table align-middle text-center">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>Day</th>
-                            <th>Batch</th>
-                            {% for slot in slots %}
-                                <th>{{ slot }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for day, data in timetable_by_day_slot.items %}
-                            {% for batch in data.batches %}
-                                <tr>
-                                    {% if forloop.first %}
-                                        <td rowspan="{{ data.batches|length }}" class="day-cell">
-                                            <strong>{{ day }}</strong>
-                                        </td>
-                                    {% endif %}
-                                    <td class="batch-cell"><strong>{{ batch }}</strong></td>
-
-                                    {% for slot in slots %}
-                                        <td class="slot-cell">
-                                            {% with batch_data=data.slot_data|get_item:batch %}
-                                                {% with slot_data=batch_data|get_item:slot %}
-                                                    {% if slot_data %}
-                                                        {% for item in slot_data %}
-                                                            <div class="timetable-item">
-                                                                <strong>{{ item.subject }}</strong><br>
-                                                                <span class="text-muted">{{ item.faculty }}</span><br>
-                                                                <span class="text-info">{{ item.room_or_lab }}</span>
-                                                            </div>
-                                                        {% endfor %}
-                                                    {% else %}
-                                                        <span class="text-muted empty-slot">–</span>
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% endwith %}
-                                        </td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <form method="post" class="mt-4 text-center">
-                {% csrf_token %}
-                <input type="text" name="timetable_name" placeholder="Enter timetable name"
-                       class="form-control d-inline-block w-auto me-2 timetable-name-input" required>
-                <button name="save" type="submit" class="btn btn-success large-button">
-                    Save Timetable
-                </button>
-            </form>
-        {% else %}
-            <p class="text-center text-muted py-5">
-                No timetable generated yet. Click "Generate Timetable" to create one.
+        <div class="card-body">
+          <p class="text-muted small mb-3">The following constraint(s) may be preventing timetable generation. Adjust them and try again.</p>
+          {% for r in gen_reasons %}
+          <div class="border-start border-3 border-warning ps-3 mb-3">
+            <strong class="text-dark">{{ r.title }}</strong>
+            <p class="small mb-1">{{ r.description }}</p>
+            <p class="small mb-1 text-success"><i class="fas fa-wrench me-1"></i>{{ r.fix }}</p>
+            {% if r.url %}
+            <p class="small mb-0">
+              <a href="{{ r.url }}" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-external-link-alt me-1"></i>Go to {{ r.title }}</a>
+              {% if r.url2 %}<a href="{{ r.url2 }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-external-link-alt me-1"></i>Visiting Faculty Blocks</a>{% endif %}
             </p>
-        {% endif %}
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+      {% if timetable_by_day_slot %}
+      <div class="table-responsive">
+        <table class="table table-bordered timetable-table align-middle text-center">
+          <thead class="table-primary">
+            <tr>
+              <th>Day</th>
+              <th>Batch</th>
+              {% for slot in slots %}<th>{{ slot }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for day, data in timetable_by_day_slot.items %}
+            {% for batch in data.batches %}
+            <tr>
+              {% if forloop.first %}
+              <td rowspan="{{ data.batches|length }}" class="day-cell"><strong>{{ day }}</strong></td>
+              {% endif %}
+              <td class="batch-cell"><strong>{{ batch }}</strong></td>
+              {% for slot in slots %}
+              <td class="slot-cell">
+                {% with batch_data=data.slot_data|get_item:batch %}
+                {% with slot_data=batch_data|get_item:slot %}
+                {% if slot_data %}
+                {% for item in slot_data %}
+                <div class="timetable-item">
+                  <strong>{{ item.subject }}</strong><br>
+                  <span class="text-muted">{{ item.faculty }}</span><br>
+                  <span class="text-info">{{ item.room_or_lab }}</span>
+                </div>
+                {% endfor %}
+                {% else %}
+                <span class="text-muted">–</span>
+                {% endif %}
+                {% endwith %}
+                {% endwith %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <form method="post" class="mt-4 text-center">
+        {% csrf_token %}
+        <input type="text" name="timetable_name" placeholder="Enter timetable name" class="form-control d-inline-block timetable-name-input me-2 mb-2 mb-md-0" required>
+        <button name="save" type="submit" class="btn btn-save"><i class="fas fa-save me-2"></i>Save Timetable</button>
+      </form>
+      {% else %}
+      <p class="text-center text-muted py-5">No timetable yet. Click "Generate Timetable" to create one.</p>
+      {% endif %}
     </div>
+  </div>
 </div>
 {% endblock %}

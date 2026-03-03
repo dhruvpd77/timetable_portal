@@ -1,30 +1,50 @@
 {% extends 'core/base_logged_in.html' %}
-{% load static %}
-{% block title %}Edit Faculty{% endblock %}
+{% block title %}Edit Faculty - LJ University{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h3>Edit Faculty</h3>
-  <a href="{% url 'faculty_management' %}" class="btn btn-outline-secondary">← Back</a>
-</div>
-
-<form method="post" class="card shadow p-4">
-  {% csrf_token %}
-  <div class="row mb-3">
-    <div class="col-md-6">
-      <label>Full Name</label>
-      <input type="text" name="full_name" class="form-control" value="{{ faculty.full_name }}" required>
+<style>
+  .edit-page-title { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .edit-page-subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .edit-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .edit-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .edit-form .form-control { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .edit-form .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-save-edit { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-save-edit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  .btn-cancel-edit { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.6rem 1.25rem; border-radius: 10px; text-decoration: none; }
+  .btn-cancel-edit:hover { border-color: #94a3b8; color: #475569; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="edit-page-title"><i class="fas fa-chalkboard-teacher me-2"></i>Edit Faculty</h1>
+      <p class="edit-page-subtitle">Updating {{ faculty.full_name }}</p>
     </div>
-    <div class="col-md-3">
-      <label>Short Name</label>
-      <input type="text" name="short_name" class="form-control" value="{{ faculty.short_name }}" required>
-    </div>
-    <div class="col-md-3">
-      <label>Default Load</label>
-      <input type="number" name="default_load" class="form-control" value="{{ faculty.default_load }}" required>
+    <a href="{% url 'faculty_management' %}" class="btn btn-cancel-edit"><i class="fas fa-arrow-left me-2"></i>Back</a>
+  </div>
+  <div class="card edit-card">
+    <div class="card-body p-4">
+      <form method="post" class="edit-form">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" name="full_name" class="form-control" value="{{ faculty.full_name }}" required>
+          </div>
+          <div class="col-12 col-md-3">
+            <label for="short_name" class="form-label">Short Name</label>
+            <input type="text" name="short_name" class="form-control" value="{{ faculty.short_name }}" required>
+          </div>
+          <div class="col-12 col-md-3">
+            <label for="default_load" class="form-label">Default Load</label>
+            <input type="number" name="default_load" class="form-control" value="{{ faculty.default_load }}" min="1" required>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button type="submit" class="btn btn-save-edit"><i class="fas fa-save me-2"></i>Save Changes</button>
+          <a href="{% url 'faculty_management' %}" class="btn btn-cancel-edit">Cancel</a>
+        </div>
+      </form>
     </div>
   </div>
-  <button type="submit" class="btn btn-primary">Save Changes</button>
-</form>
-
+</div>
 {% endblock %}

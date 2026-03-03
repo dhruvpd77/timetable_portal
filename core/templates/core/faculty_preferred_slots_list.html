@@ -1,80 +1,92 @@
 {% extends 'core/base_logged_in.html' %}
-
-{% block title %}🎯 Faculty Preferred Slots{% endblock %}
-
+{% block title %}Faculty Preferred Slots - LJ University{% endblock %}
 {% block content %}
-<div class="container py-4">
-    <h3 class="mb-3 text-primary">🎯 Preferred Slots for Faculty</h3>
-
-    <form method="post">
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #16a34a; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control, .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus, .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .mgmt-form select[multiple] { min-height: 200px; }
+  .btn-add-mgmt { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-add-mgmt:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); color: #fff; }
+  .mgmt-list-header { font-weight: 700; color: #1e3a5f; font-size: 1.1rem; margin: 1.5rem 0 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+  .mgmt-item-card { background: #f8fafc; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; }
+  .mgmt-item-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .mgmt-empty { text-align: center; padding: 2rem; color: #64748b; }
+  .mgmt-empty i { font-size: 3rem; opacity: 0.4; margin-bottom: 0.5rem; }
+  .slot-badge { font-size: 0.75rem; display: inline-block; margin: 2px; }
+  @media (max-width: 767px) { .mgmt-form .col-md-6 { order: -1; } .mgmt-form select[multiple] { min-height: 150px; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="mgmt-page-title"><i class="fas fa-star me-2"></i>Faculty Preferred Slots</h1>
+    <p class="mgmt-page-subtitle">Set preferred time slots for faculty-batch assignments.</p>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <form method="post" class="mgmt-form">
         {% csrf_token %}
         <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Select Faculty</label>
-                <select name="faculty" class="form-select" required>
-                    <option value="">-- Select Faculty --</option>
-                    {% for fac in faculties %}
-                        <option value="{{ fac.id }}">{{ fac.short_name }} - {{ fac.full_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">Select Batch</label>
-                <select name="batch" class="form-select" required>
-                    <option value="">-- Select Batch --</option>
-                    {% for batch in batches %}
-                        <option value="{{ batch.id }}">{{ batch.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Select Preferred Time Slots (Day | Slot)</label>
-                <select name="slots" class="form-select" multiple size="10" required>
-                    {% for ds in all_day_slots %}
-                        <option value="{{ ds }}">{{ ds }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Select Faculty</label>
+            <select name="faculty" class="form-select" required>
+              <option value="">-- Select Faculty --</option>
+              {% for fac in faculties %}<option value="{{ fac.id }}">{{ fac.short_name }} - {{ fac.full_name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label">Select Batch</label>
+            <select name="batch" class="form-select" required>
+              <option value="">-- Select Batch --</option>
+              {% for batch in batches %}<option value="{{ batch.id }}">{{ batch.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label">Select Preferred Slots (Day | Slot)</label>
+            <select name="slots" class="form-select" multiple size="8" required>
+              {% for ds in all_day_slots %}<option value="{{ ds }}">{{ ds }}</option>{% endfor %}
+            </select>
+          </div>
         </div>
         <div class="mt-3">
-            <button class="btn btn-primary" type="submit">➕ Add Preferred Slots</button>
+          <button type="submit" class="btn btn-add-mgmt"><i class="fas fa-plus me-2"></i>Add Preferred Slots</button>
         </div>
-    </form>
-
-    <hr>
-
-    <h4>🗂️ Existing Preferred Slots</h4>
-    <table class="table table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>Faculty</th>
-                <th>Batch</th>
-                <th>Preferred Slots</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pref in preferred_slots %}
+      </form>
+      <h5 class="mgmt-list-header"><i class="fas fa-list me-2"></i>Existing Preferred Slots</h5>
+      {% if preferred_slots %}
+        <div class="d-none d-md-block">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light"><tr><th>Faculty</th><th>Batch</th><th>Preferred Slots</th><th class="text-end">Action</th></tr></thead>
+              <tbody>
+                {% for pref in preferred_slots %}
                 <tr>
-                    <td><strong>{{ pref.faculty.short_name }}</strong><br>
-                        <small class="text-muted">{{ pref.faculty.full_name }}</small>
-                    </td>
-                    <td><span class="badge bg-info">{{ pref.batch.name }}</span></td>
-                    <td>
-                        {% for item in pref.preferred_slots %}
-                            <span class="badge bg-success me-1 mb-1">{{ item.day }} | {{ item.slot }}</span>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        <a href="?delete={{ pref.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
+                  <td><strong>{{ pref.faculty.short_name }}</strong><br><small class="text-muted">{{ pref.faculty.full_name }}</small></td>
+                  <td><span class="badge bg-success">{{ pref.batch.name }}</span></td>
+                  <td>{% for item in pref.preferred_slots %}<span class="badge bg-info slot-badge">{{ item.day }} | {{ item.slot }}</span>{% endfor %}</td>
+                  <td class="text-end"><a href="?delete={{ pref.id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?');"><i class="fas fa-trash"></i></a></td>
                 </tr>
-            {% empty %}
-                <tr><td colspan="4">No preferred slots yet.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="d-md-none">
+          {% for pref in preferred_slots %}
+          <div class="mgmt-item-card">
+            <div class="fw-bold mb-1">{{ pref.faculty.short_name }} <small class="text-muted">{{ pref.faculty.full_name }}</small></div>
+            <div class="mb-2"><span class="badge bg-success">{{ pref.batch.name }}</span></div>
+            <div class="mb-2">{% for item in pref.preferred_slots %}<span class="badge bg-info slot-badge">{{ item.day }} | {{ item.slot }}</span>{% endfor %}</div>
+            <a href="?delete={{ pref.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?');"><i class="fas fa-trash me-1"></i>Delete</a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="mgmt-empty"><i class="fas fa-star d-block"></i><p class="mb-0">No preferred slots yet.</p></div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

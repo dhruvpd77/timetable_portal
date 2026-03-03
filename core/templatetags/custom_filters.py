@@ -7,10 +7,22 @@ register = template.Library()
 
 @register.filter
 def get_item(dictionary, key):
-    print(f"GET_ITEM FILTER: key={key} from dict={dictionary}")
     if isinstance(dictionary, dict):
-        return dictionary.get(key, {})
+        # If the dictionary values are strings (final level), return empty string
+        # If the dictionary values are dictionaries (intermediate level), return empty dict
+        sample_value = next(iter(dictionary.values())) if dictionary else None
+        if isinstance(sample_value, str):
+            return dictionary.get(key, "")
+        else:
+            return dictionary.get(key, {})
     return {}
+
+@register.filter
+def add(value, arg):
+    try:
+        return int(value) + int(arg)
+    except (ValueError, TypeError):
+        return value
 
 @register.filter
 def divide(value, arg):

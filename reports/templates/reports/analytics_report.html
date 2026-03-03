@@ -1,0 +1,386 @@
+{% extends "core/base_logged_in.html" %}
+{% load static %}
+{% block title %}Analytics Report - LJ University{% endblock %}
+
+{% block extra_css %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .btn-back { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; }
+  .btn-back:hover { border-color: #94a3b8; color: #475569; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; width: 100%; }
+  .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-analytics { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-analytics:hover { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+  .btn-download { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; font-weight: 600; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; display: inline-block; margin: 0.25rem; transition: all 0.2s; }
+  .btn-download:hover { background: linear-gradient(135deg, #15803d, #16a34a); color: #fff; text-decoration: none; }
+  .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+  .metric-card { background: #fff; border-radius: 1rem; padding: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; transition: all 0.2s; }
+  .metric-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+  .metric-header { display: flex; align-items: center; margin-bottom: 1rem; }
+  .metric-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: #dbeafe; color: #2563eb; margin-right: 1rem; }
+  .metric-title { font-size: 1.1rem; font-weight: 600; color: #1e3a5f; margin: 0; }
+  .metric-value { font-size: 2rem; font-weight: 700; color: #2563eb; margin: 0.5rem 0; }
+  .metric-description { color: #64748b; font-size: 0.9rem; line-height: 1.5; }
+  .chart-container { background: #fff; border-radius: 1rem; padding: 1.5rem; margin: 1.5rem 0; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .chart-title { font-size: 1.25rem; font-weight: 600; color: #1e3a5f; margin-bottom: 1.25rem; }
+  .data-table { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; }
+  .data-table th { background: #1e3a5f; color: #fff; padding: 12px 15px; text-align: left; font-weight: 600; }
+  .data-table td { padding: 10px 15px; border-bottom: 1px solid #e2e8f0; }
+  .data-table tr:hover td { background: #f8fafc; }
+  .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #3b82f6); border-radius: 4px; transition: width 0.6s; }
+  .faculty-card { background: #f8fafc; border-radius: 12px; padding: 1rem; margin: 0.5rem 0; border-left: 4px solid #2563eb; transition: all 0.2s; }
+  .faculty-card:hover { background: #f1f5f9; }
+  .faculty-name { font-size: 1.1rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.75rem; }
+  .faculty-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 1rem; }
+  .stat-item { text-align: center; }
+  .stat-value { font-size: 1.25rem; font-weight: 700; color: #2563eb; }
+  .stat-label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
+  .conflict-alert { background: #fef2f2; color: #dc2626; padding: 0.75rem 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #dc2626; }
+  .success-metric { background: #f0fdf4; color: #16a34a; padding: 0.75rem 1rem; border-radius: 10px; margin: 0.5rem 0; border-left: 4px solid #16a34a; }
+  .download-section { margin: 1.5rem 0; }
+  .download-section .card { border-left-color: #16a34a; }
+  .no-data-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .no-data { text-align: center; padding: 3rem 2rem; color: #64748b; }
+  .no-data i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
+  .no-data h3 { color: #1e3a5f; font-weight: 600; margin-bottom: 0.5rem; }
+  .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 767px) { .analytics-grid { grid-template-columns: 1fr; } .metric-value { font-size: 1.5rem; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-chart-line me-2"></i>Analytics Report</h1>
+      <p class="mgmt-page-subtitle">Comprehensive Faculty & Timetable Analytics Dashboard</p>
+    </div>
+    <a href="{% url 'report_dashboard' %}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i>Back to Dashboard</a>
+  </div>
+
+  <div class="card mgmt-card mb-4">
+    <div class="card-body p-4">
+      <form method="get" id="analyticsForm" class="mgmt-form">
+        <div class="row g-3">
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="departments">Select Departments</label>
+            <select name="departments" id="departments" class="form-select" multiple size="4">
+              {% for dept in departments %}
+              <option value="{{ dept }}" {% if dept in selected_departments %}selected{% endif %}>{{ dept }}</option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="timetables">Select Timetables</label>
+            <select name="timetables" id="timetables" class="form-select" multiple size="4">
+              {% for tt in timetables_for_departments %}
+              <option value="{{ tt }}" {% if tt in selected_timetables %}selected{% endif %}>{{ tt }}</option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="faculty">Filter by Faculty</label>
+            <select name="faculty" id="faculty" class="form-select">
+              <option value="">All Faculties</option>
+              {% for fac in faculties %}
+              <option value="{{ fac }}" {% if fac == selected_faculty %}selected{% endif %}>{{ fac }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-analytics w-100">
+              <i class="fas fa-chart-line me-1"></i>Generate Analytics
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if analytics_data %}
+  <div class="card mgmt-card download-section" style="border-left-color: #16a34a;">
+    <div class="card-body">
+      <h5 class="mb-3"><i class="fas fa-download me-2"></i>Download Analytics Report</h5>
+      <a href="?{{ request.GET.urlencode }}&format=pdf" class="btn btn-danger btn-sm me-2"><i class="fas fa-file-pdf me-1"></i>Download PDF</a>
+      <a href="?{{ request.GET.urlencode }}&format=excel" class="btn btn-success btn-sm"><i class="fas fa-file-excel me-1"></i>Download Excel</a>
+    </div>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="metric-title">Total Faculty</h3>
+                    </div>
+                    <div class="metric-value">{{ analytics_data.efficiency_metrics.faculty_count }}</div>
+                    <div class="metric-description">Active faculty members in selected departments</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3 class="metric-title">Total Subjects</h3>
+                    </div>
+                    <div class="metric-value">{{ analytics_data.efficiency_metrics.subject_count }}</div>
+                    <div class="metric-description">Subjects being taught across all batches</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <h3 class="metric-title">Total Lectures</h3>
+                    </div>
+                    <div class="metric-value">{{ analytics_data.efficiency_metrics.total_entries }}</div>
+                    <div class="metric-description">Scheduled lectures in the timetable</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3 class="metric-title">Utilization Rate</h3>
+                    </div>
+                    <div class="metric-value">{{ analytics_data.efficiency_metrics.utilization_rate|floatformat:1 }}%</div>
+                    <div class="metric-description">Percentage of available slots being used</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ analytics_data.efficiency_metrics.utilization_rate }}%"></div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <h3 class="metric-title">Workload Balance</h3>
+                    </div>
+                    <div class="metric-value">{{ analytics_data.efficiency_metrics.workload_balance|floatformat:2 }}</div>
+                    <div class="metric-description">Distribution balance across faculty (higher is better)</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="metric-title">Conflicts</h3>
+                    </div>
+                    <div class="metric-value">{{ analytics_data.conflict_analysis.total_conflicts }}</div>
+                    <div class="metric-description">Scheduling conflicts detected</div>
+                    {% if analytics_data.conflict_analysis.total_conflicts > 0 %}
+                        <div class="conflict-alert">
+                            <i class="fas fa-warning"></i> {{ analytics_data.conflict_analysis.total_conflicts }} conflicts need attention
+                        </div>
+                    {% else %}
+                        <div class="success-metric">
+                            <i class="fas fa-check-circle"></i> No conflicts detected
+                        </div>
+                    {% endif %}
+    </div>
+  </div>
+
+  <div class="card chart-container">
+    <div class="card-body">
+      <h5 class="chart-title"><i class="fas fa-users me-2"></i>Faculty Workload Analysis</h5>
+                <div class="row">
+                    {% for faculty, stats in analytics_data.faculty_workload.items %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="faculty-card">
+                                <div class="faculty-name">{{ faculty }}</div>
+                                <div class="faculty-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.total_lectures }}</div>
+                                        <div class="stat-label">Total Lectures</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.subject_count }}</div>
+                                        <div class="stat-label">Subjects</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.batch_count }}</div>
+                                        <div class="stat-label">Batches</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.avg_lectures_per_day|floatformat:1 }}</div>
+                                        <div class="stat-label">Avg/Day</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card chart-container">
+    <div class="card-body">
+      <h5 class="chart-title"><i class="fas fa-book me-2"></i>Subject Distribution Analysis</h5>
+      <div class="table-responsive">
+        <table class="data-table table">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Total Lectures</th>
+                                <th>Faculty Count</th>
+                                <th>Batch Count</th>
+                                <th>Room Count</th>
+                                <th>Lab Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject, stats in analytics_data.subject_distribution.items %}
+                                <tr>
+                                    <td><strong>{{ subject }}</strong></td>
+                                    <td>{{ stats.total_lectures }}</td>
+                                    <td>{{ stats.faculty_count }}</td>
+                                    <td>{{ stats.batch_count }}</td>
+                                    <td>{{ stats.room_count }}</td>
+                                    <td>{{ stats.lab_count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+
+  <div class="card chart-container">
+    <div class="card-body">
+      <h5 class="chart-title"><i class="fas fa-building me-2"></i>Room & Lab Utilization</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-secondary mb-3">Room Utilization</h6>
+                        {% for room, stats in analytics_data.room_lab_utilization.rooms.items %}
+                            <div class="faculty-card">
+                                <div class="faculty-name">{{ room }}</div>
+                                <div class="faculty-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.total_usage }}</div>
+                                        <div class="stat-label">Total Usage</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.utilization_rate|floatformat:1 }}</div>
+                                        <div class="stat-label">Utilization Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+        </div>
+        <div class="col-md-6">
+          <h6 class="text-secondary mb-3">Lab Utilization</h6>
+                        {% for lab, stats in analytics_data.room_lab_utilization.labs.items %}
+                            <div class="faculty-card">
+                                <div class="faculty-name">{{ lab }}</div>
+                                <div class="faculty-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.total_usage }}</div>
+                                        <div class="stat-label">Total Usage</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.utilization_rate|floatformat:1 }}</div>
+                                        <div class="stat-label">Utilization Rate</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+    </div>
+  </div>
+
+  <div class="card chart-container">
+    <div class="card-body">
+      <h5 class="chart-title"><i class="fas fa-graduation-cap me-2"></i>Batch Workload Analysis</h5>
+      <div class="table-responsive">
+        <table class="data-table table">
+                        <thead>
+                            <tr>
+                                <th>Batch</th>
+                                <th>Total Lectures</th>
+                                <th>Subject Count</th>
+                                <th>Faculty Count</th>
+                                <th>Avg Lectures/Day</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for batch, stats in analytics_data.batch_workload.items %}
+                                <tr>
+                                    <td><strong>{{ batch }}</strong></td>
+                                    <td>{{ stats.total_lectures }}</td>
+                                    <td>{{ stats.subject_count }}</td>
+                                    <td>{{ stats.faculty_count }}</td>
+                                    <td>{{ stats.avg_lectures_per_day|floatformat:1 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+
+  <div class="card chart-container">
+    <div class="card-body">
+      <h5 class="chart-title"><i class="fas fa-clock me-2"></i>Faculty Availability Patterns</h5>
+                <div class="row">
+                    {% for faculty, stats in analytics_data.faculty_availability_patterns.items %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="faculty-card">
+                                <div class="faculty-name">{{ faculty }}</div>
+                                <div class="faculty-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.availability_percentage|floatformat:1 }}%</div>
+                                        <div class="stat-label">Availability</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.total_free_slots }}</div>
+                                        <div class="stat-label">Free Slots</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ stats.total_busy_slots }}</div>
+                                        <div class="stat-label">Busy Slots</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card no-data-card">
+    <div class="no-data">
+      <i class="fas fa-chart-line"></i>
+      <h3>No Analytics Data</h3>
+      <p>Please select departments and timetables above, then click Generate Analytics.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const submitBtn = document.querySelector('.btn-analytics');
+    if (submitBtn) {
+        document.getElementById('analyticsForm').addEventListener('submit', function() {
+            submitBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+            submitBtn.disabled = true;
+        });
+    }
+});
+</script>
+{% endblock %}

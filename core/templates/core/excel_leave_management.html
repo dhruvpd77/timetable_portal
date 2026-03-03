@@ -1,0 +1,86 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Excel Leave Management - LJ University{% endblock %}
+{% block content %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #16a34a; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-upload { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.25rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); color: #fff; }
+  .btn-back { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; }
+  .btn-back:hover { border-color: #94a3b8; color: #475569; }
+  .step-card { background: #f8fafc; border-radius: 12px; padding: 1.5rem; text-align: center; border: 1px solid #e2e8f0; height: 100%; }
+  .step-icon { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; font-size: 1.25rem; }
+  .info-box { background: #f0f9ff; border-radius: 10px; padding: 1rem; border: 1px solid #bae6fd; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-file-excel me-2"></i>Excel Leave Management</h1>
+      <p class="mgmt-page-subtitle">Upload timetable Excel and manage faculty leave replacements.</p>
+    </div>
+    <a href="{% url 'welcome' %}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i>Back to Dashboard</a>
+  </div>
+  <div class="card mgmt-card mb-4">
+    <div class="card-body p-4">
+      <h6 class="fw-bold mb-3"><i class="fas fa-upload me-2"></i>Upload Timetable Excel</h6>
+      <div class="row g-4">
+        <div class="col-12 col-lg-8">
+          <form method="post" enctype="multipart/form-data" class="mgmt-form">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="{{ form.excel_file.id_for_label }}" class="form-label">Select Excel File</label>
+              {{ form.excel_file }}
+              {% if form.excel_file.help_text %}<div class="form-text">{{ form.excel_file.help_text }}</div>{% endif %}
+              {% if form.excel_file.errors %}<div class="text-danger small">{% for e in form.excel_file.errors %}{{ e }}{% endfor %}</div>{% endif %}
+            </div>
+            <button type="submit" class="btn btn-upload"><i class="fas fa-upload me-2"></i>Upload & Parse</button>
+          </form>
+        </div>
+        <div class="col-12 col-lg-4">
+          <div class="info-box">
+            <h6 class="fw-bold mb-2">Expected Format</h6>
+            <ul class="mb-0 small">
+              <li><strong>Column A:</strong> Day/Batch (e.g. Monday / A1)</li>
+              <li><strong>Row 1:</strong> Time slots</li>
+              <li><strong>Cells:</strong> Subject, Faculty, Room/Lab</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card mgmt-card">
+    <div class="card-body p-4">
+      <h6 class="fw-bold mb-3"><i class="fas fa-question-circle me-2"></i>How It Works</h6>
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <div class="step-card">
+            <div class="step-icon bg-primary text-white"><i class="fas fa-upload"></i></div>
+            <h6 class="fw-bold">1. Upload Excel</h6>
+            <p class="small text-muted mb-0">Upload your timetable Excel with the specified format</p>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="step-card">
+            <div class="step-icon bg-success text-white"><i class="fas fa-user-check"></i></div>
+            <h6 class="fw-bold">2. Select Faculty & Day</h6>
+            <p class="small text-muted mb-0">Choose faculty and day for leave management</p>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="step-card">
+            <div class="step-icon bg-warning text-dark"><i class="fas fa-exchange-alt"></i></div>
+            <h6 class="fw-bold">3. Assign Replacements</h6>
+            <p class="small text-muted mb-0">Assign replacement faculty and generate temporary timetable</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

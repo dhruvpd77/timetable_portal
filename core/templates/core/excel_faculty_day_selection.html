@@ -1,0 +1,117 @@
+{% extends 'core/base_logged_in.html' %}
+{% load static %}
+{% block title %}Select Faculty & Day - LJ University{% endblock %}
+{% block content %}
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #16a34a; }
+  .mgmt-form .form-label { font-weight: 600; color: #1e3a5f; }
+  .mgmt-form .form-control, .mgmt-form .form-select { border-radius: 10px; border: 2px solid #e2e8f0; padding: 0.6rem 1rem; }
+  .mgmt-form .form-control:focus, .mgmt-form .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+  .btn-continue { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-continue:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.4); color: #fff; }
+  .btn-back { border: 2px solid #e2e8f0; color: #64748b; font-weight: 500; padding: 0.5rem 1rem; border-radius: 10px; text-decoration: none; }
+  .btn-back:hover { border-color: #94a3b8; color: #475569; }
+  .summary-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); text-align: center; padding: 1.25rem; height: 100%; border: 1px solid #e2e8f0; }
+  .summary-icon { width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; font-size: 1.25rem; }
+  .preview-card { background: #f8fafc; border-radius: 12px; padding: 1rem; border: 1px solid #e2e8f0; height: 100%; }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mgmt-page-title"><i class="fas fa-user-check me-2"></i>Select Faculty & Day</h1>
+      <p class="mgmt-page-subtitle">Choose faculty and day for leave management.</p>
+    </div>
+    <a href="{% url 'excel_leave_management' %}" class="btn btn-back"><i class="fas fa-arrow-left me-1"></i>Back to Upload</a>
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="summary-card">
+        <div class="summary-icon bg-primary text-white"><i class="fas fa-users"></i></div>
+        <h4 class="mb-0 fw-bold">{{ faculty_count }}</h4>
+        <small class="text-muted">Faculty Found</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-card">
+        <div class="summary-icon bg-success text-white"><i class="fas fa-calendar"></i></div>
+        <h4 class="mb-0 fw-bold">{{ days_count }}</h4>
+        <small class="text-muted">Days Found</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-card">
+        <div class="summary-icon bg-info text-white"><i class="fas fa-graduation-cap"></i></div>
+        <h4 class="mb-0 fw-bold">{{ batches_count }}</h4>
+        <small class="text-muted">Batches Found</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-card">
+        <div class="summary-icon bg-warning text-dark"><i class="fas fa-file-excel"></i></div>
+        <h4 class="mb-0 fw-bold">Excel</h4>
+        <small class="text-muted">Parsed Successfully</small>
+      </div>
+    </div>
+  </div>
+  <div class="card mgmt-card mb-4">
+    <div class="card-body p-4">
+      <h6 class="fw-bold mb-3"><i class="fas fa-mouse-pointer me-2"></i>Make Your Selection</h6>
+      <form method="post" class="mgmt-form">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label for="{{ form.faculty.id_for_label }}" class="form-label"><i class="fas fa-user me-1"></i>Select Faculty</label>
+            {{ form.faculty }}
+            {% if form.faculty.errors %}<div class="text-danger small">{% for e in form.faculty.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="{{ form.day.id_for_label }}" class="form-label"><i class="fas fa-calendar-day me-1"></i>Select Day</label>
+            {{ form.day }}
+            {% if form.day.errors %}<div class="text-danger small">{% for e in form.day.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-continue"><i class="fas fa-arrow-right me-2"></i>Continue to Leave Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="card mgmt-card">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3"><i class="fas fa-users me-2"></i>Available Faculty (First 10)</h6>
+          {% if faculty_list %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for faculty in faculty_list %}
+            <span class="badge bg-primary rounded-pill px-3 py-2">{{ faculty }}</span>
+            {% endfor %}
+          </div>
+          {% if faculty_count > 10 %}<small class="text-muted">... and {{ faculty_count|add:"-10" }} more</small>{% endif %}
+          {% else %}
+          <p class="text-muted mb-0">No faculty found in the Excel file.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card mgmt-card">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3"><i class="fas fa-calendar me-2"></i>Available Days</h6>
+          {% if days_list %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for day in days_list %}
+            <span class="badge bg-success rounded-pill px-3 py-2">{{ day }}</span>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">No days found in the Excel file.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

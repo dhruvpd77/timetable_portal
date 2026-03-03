@@ -1,65 +1,74 @@
 {% extends 'core/base_logged_in.html' %}
 {% load static %}
-<img src="{% static 'images/a.png' %}" alt="Logo" style="max-height: 22px;">
-
-{% block title %}Department Time Settings{% endblock %}
+{% block title %}Time Settings - LJ University{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/erp_styles.css' %}">
-
-<h3>⏰ Department Time Configuration</h3>
-
-{% if messages %}
-  {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-  {% endfor %}
-{% endif %}
-
-<form method="post">
-  {% csrf_token %}
-  <div class="card mb-4 shadow">
-    <div class="card-header bg-primary text-white">Select Working Days</div>
-    <div class="card-body">
-      {% for day in global_days %}
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="checkbox" name="selected_days" value="{{ day.id }}"
-                 {% if day in selected_days %}checked{% endif %}>
-          <label class="form-check-label">{{ day.name }}</label>
-        </div>
-      {% endfor %}
-    </div>
+<style>
+  .mgmt-page-title { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, #1e3a5f, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
+  .mgmt-page-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .mgmt-card { background: #fff; border-radius: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+  .mgmt-card.days { border-left-color: #2563eb; }
+  .mgmt-card.slots { border-left-color: #16a34a; }
+  .mgmt-card.breaks { border-left-color: #d97706; }
+  .mgmt-form .form-check-input { width: 1.2em; height: 1.2em; }
+  .mgmt-form .form-check-label { margin-left: 0.5rem; }
+  .btn-save { background: linear-gradient(135deg, #1e3a5f, #2563eb); border: none; color: #fff; font-weight: 600; padding: 0.6rem 1.5rem; border-radius: 10px; transition: all 0.2s; }
+  .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); color: #fff; }
+  @media (max-width: 575px) { .form-check-inline { display: block; margin-bottom: 0.5rem; } }
+</style>
+<div class="container-fluid py-3 py-md-4">
+  <div class="mb-4">
+    <h1 class="mgmt-page-title"><i class="fas fa-clock me-2"></i>Department Time Settings</h1>
+    <p class="mgmt-page-subtitle">Configure working days, time slots, and break slots.</p>
   </div>
-
-  <div class="card mb-4 shadow">
-    <div class="card-header bg-success text-white">Select Working Time Slots</div>
-    <div class="card-body row">
-      {% for slot in global_slots %}
-        <div class="col-md-4 mb-2">
+  {% if messages %}
+  <div class="mb-4">{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}</div>
+  {% endif %}
+  <form method="post" class="mgmt-form">
+    {% csrf_token %}
+    <div class="card mgmt-card days mb-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-calendar-alt me-2"></i>Working Days</h6>
+        <div class="d-flex flex-wrap gap-3">
+          {% for day in global_days %}
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="selected_slots" value="{{ slot.id }}"
-                   {% if slot in selected_slots %}checked{% endif %}>
-            <label class="form-check-label">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</label>
+            <input class="form-check-input" type="checkbox" name="selected_days" value="{{ day.id }}" id="day{{ day.id }}" {% if day in selected_days %}checked{% endif %}>
+            <label class="form-check-label" for="day{{ day.id }}">{{ day.name }}</label>
           </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
     </div>
-  </div>
-
-  <div class="card mb-4 shadow">
-    <div class="card-header bg-warning text-dark">Select Break Slots</div>
-    <div class="card-body row">
-      {% for slot in global_slots %}
-        <div class="col-md-4 mb-2">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="break_slots" value="{{ slot.id }}"
-                   {% if slot in break_slots %}checked{% endif %}>
-            <label class="form-check-label">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</label>
+    <div class="card mgmt-card slots mb-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-business-time me-2"></i>Working Time Slots</h6>
+        <div class="row g-2">
+          {% for slot in global_slots %}
+          <div class="col-12 col-md-4 col-lg-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="selected_slots" value="{{ slot.id }}" id="slot{{ slot.id }}" {% if slot in selected_slots %}checked{% endif %}>
+              <label class="form-check-label" for="slot{{ slot.id }}">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</label>
+            </div>
           </div>
+          {% endfor %}
         </div>
-      {% endfor %}
+      </div>
     </div>
-  </div>
-
-  <button type="submit" class="btn btn-primary">Save Settings</button>
-</form>
-
+    <div class="card mgmt-card breaks mb-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3"><i class="fas fa-coffee me-2"></i>Break Slots</h6>
+        <div class="row g-2">
+          {% for slot in global_slots %}
+          <div class="col-12 col-md-4 col-lg-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="break_slots" value="{{ slot.id }}" id="break{{ slot.id }}" {% if slot in break_slots %}checked{% endif %}>
+              <label class="form-check-label" for="break{{ slot.id }}">{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-save"><i class="fas fa-save me-2"></i>Save Settings</button>
+  </form>
+</div>
 {% endblock %}

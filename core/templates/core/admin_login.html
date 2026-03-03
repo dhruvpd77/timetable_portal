@@ -1,13 +1,16 @@
 {% extends 'core/base_logged_in.html' %}
-
-{% block title %}Admin Login - Timetable ERP{% endblock %}
-
+{% load static %}
+{% block title %}Admin Login - LJ University Timetable ERP{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center">
+                <div class="card-header text-white text-center py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #7c3aed 100%);">
+                    <div class="d-flex justify-content-center gap-2 mb-2">
+                        <img src="{% static 'img/lju_logo.png' %}" alt="LJ University" style="height: 42px; width: auto; background: #fff; padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
+                        <img src="{% static 'img/ljiet_logo.png' %}" alt="LJ University" style="height: 42px; width: auto; background: #fff; padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);" />
+                    </div>
                     <h4 class="mb-0">🔧 Admin Access</h4>
                 </div>
                 <div class="card-body p-4">

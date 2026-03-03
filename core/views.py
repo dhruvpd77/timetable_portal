@@ -4,12 +4,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from core.utils.timetable_solver import generate_timetable
+from core.utils.timetable_solver import generate_timetable, diagnose_timetable_failure
 from .models import (
     College, Department, Batch, Lab, Room, CourseAssignment, CourseSpec,
     Faculty, Timetable, TimetableEntry, VisitingFacultyBlock,
     TimeSettings, GlobalDay, GlobalTimeSlot, BatchRoomLabMapping, TimetableType,
-    FacultyPreferredSlot
+    FacultyPreferredSlot, LeaveRequest, LeaveReassignment,
+    FacultyBlock, RoomBlock, LabBlock
 )
 from .forms import FacultyPreferredSlotForm
 from .forms import BatchForm, LabForm, RoomForm, CourseAssignmentForm, CourseSpecForm, TimetableTypeForm, AdminPasswordForm, CollegeForm, DepartmentForm, UserForm, UploadExcelForm, BatchRoomLabSimpleMappingForm, UploadExcelTimetableForm
@@ -726,32 +727,77 @@ def generate_timetable_view(request):
         if mapping.lab:
             batch_to_labs[batch_name].add(mapping.lab.name)
 
-    # Fetch blocked slots if you use this feature
-    blocked_faculty_slots = get_blocked_faculty_slots(department)
-    blocked_room_slots = get_blocked_room_slots(department)
-    blocked_lab_slots = get_blocked_lab_slots(department)
-    
-    # Fetch preferred slots
-    preferred_faculty_slots = get_preferred_faculty_slots(department)
-
-    # Fetch timetable type setting
+    timetable_by_day_slot = None
+    result_entries = []
+    gen_error = None
+    gen_reasons = []
     try:
-        timetable_type_obj = TimetableType.objects.get(department=department)
-        timetable_type = timetable_type_obj.slot_type
-    except TimetableType.DoesNotExist:
-        timetable_type = '1_hour'  # Default to 1-hour slots
+        # Fetch blocked slots if you use this feature
+        blocked_faculty_slots = get_blocked_faculty_slots(department)
+        blocked_room_slots = get_blocked_room_slots(department)
+        blocked_lab_slots = get_blocked_lab_slots(department)
 
-    timetable_by_day_slot, result_entries = generate_timetable(
-        department, settings, specs, assignments, faculty_objs, batch_objs,
-        rooms, labs,
-        batch_to_rooms=batch_to_rooms,
-        batch_to_labs=batch_to_labs,
-        blocked_faculty_slots=blocked_faculty_slots,
-        blocked_room_slots=blocked_room_slots,
-        blocked_lab_slots=blocked_lab_slots,
-        preferred_faculty_slots=preferred_faculty_slots,
-        timetable_type=timetable_type
-    )
+        # Merge FacultyBlock (direct blocks) into blocked_faculty_slots
+        for fb in FacultyBlock.objects.filter(department=department):
+            fac = fb.faculty.short_name
+            for item in (fb.blocked_slots or []):
+                if isinstance(item, dict):
+                    day, slot = item.get("day"), item.get("slot")
+                elif isinstance(item, (list, tuple)) and len(item) >= 2:
+                    day, slot = item[0], item[1]
+                else:
+                    day, slot = None, None
+                if day and slot:
+                    blocked_faculty_slots.setdefault(fac, set()).add((day, slot))
+
+        # Fetch preferred slots
+        preferred_faculty_slots = get_preferred_faculty_slots(department)
+
+        # Fetch timetable type setting
+        try:
+            timetable_type_obj = TimetableType.objects.get(department=department)
+            timetable_type = timetable_type_obj.slot_type
+        except TimetableType.DoesNotExist:
+            timetable_type = '2_hour'  # Default to 2-hour pair slots
+
+        timetable_by_day_slot, result_entries, status, status_name = generate_timetable(
+            department, settings, specs, assignments, faculty_objs, batch_objs,
+            rooms, labs,
+            batch_to_rooms=batch_to_rooms,
+            batch_to_labs=batch_to_labs,
+            blocked_faculty_slots=blocked_faculty_slots,
+            blocked_room_slots=blocked_room_slots,
+            blocked_lab_slots=blocked_lab_slots,
+            preferred_faculty_slots=preferred_faculty_slots,
+            timetable_type=timetable_type
+        )
+
+        # If generation failed (INFEASIBLE), run diagnostic to find likely causes
+        from ortools.sat.python import cp_model
+        from django.urls import reverse
+        if status not in [cp_model.OPTIMAL, cp_model.FEASIBLE] and timetable_by_day_slot is None:
+            gen_error = f"Timetable could not be generated (solver status: {status_name})."
+            gen_reasons = diagnose_timetable_failure(
+                department, settings, specs, assignments, faculty_objs, batch_objs,
+                rooms, labs,
+                batch_to_rooms=batch_to_rooms,
+                batch_to_labs=batch_to_labs,
+                blocked_faculty_slots=blocked_faculty_slots,
+                blocked_room_slots=blocked_room_slots,
+                blocked_lab_slots=blocked_lab_slots,
+                preferred_faculty_slots=preferred_faculty_slots,
+                timetable_type=timetable_type,
+            )
+            # Add URLs for quick navigation
+            for r in gen_reasons:
+                if r.get("url_name"):
+                    r["url"] = reverse(r["url_name"])
+                if r.get("url_name2"):
+                    r["url2"] = reverse(r["url_name2"])
+    except Exception as e:
+        import traceback
+        gen_error = f"Timetable generation failed: {e}"
+        traceback.print_exc()
 
     if request.method == "POST" and "generate" in request.POST:
         # You can optionally re-run generate_timetable on demand here or above
@@ -786,7 +832,8 @@ def generate_timetable_view(request):
         "timetable_by_day_slot": timetable_by_day_slot,
         "slots": [f"{s.start_time.strftime('%H:%M')}–{s.end_time.strftime('%H:%M')}" for s in settings.selected_slots.all()],
         "show_save": bool(result_entries),
-
+        "gen_error": gen_error,
+        "gen_reasons": gen_reasons,
     })
 
 
@@ -1641,7 +1688,7 @@ def batch_room_lab_simple_mapping_view(request):
             return redirect('batch_room_lab_simple_mapping')  # Ensure you set this name in urls.py
 
         # Handle regular form submission (Add/Update Mapping)
-        form = BatchRoomLabSimpleMappingForm(department, request.POST)
+        form = BatchRoomLabSimpleMappingForm(request.POST, department=department)
         if form.is_valid():
             batch = form.cleaned_data['batch']
             room = form.cleaned_data['room']
@@ -1661,7 +1708,7 @@ def batch_room_lab_simple_mapping_view(request):
             return redirect('batch_room_lab_simple_mapping')
 
     else:
-        form = BatchRoomLabSimpleMappingForm(department)
+        form = BatchRoomLabSimpleMappingForm(department=department)
 
     return render(request, 'core/batch_room_lab_simple_mapping.html', {
         'form': form,
@@ -1741,25 +1788,52 @@ def upload_excel_timetable_view(request):
 
             def parse_fac_sub_room(cell_value):
                 """
-                Split into faculty, subject, room/lab name, and subject_type
-                PHA-FSD_2-408-A(L) => faculty=PHA, subject=FSD_2, lab=408-A, type=Practical
-                PSK-DM-310 => faculty=PSK, subject=DM, room=310, type=Theory
+                Parse timetable cell format to extract faculty, subject, room/lab name, and subject_type
+                Supports both formats:
+                1. New format: DE (UMS) (301) => faculty=UMS, subject=DE, room=301, type=Theory
+                2. New format: FSD-1 (DKU) (408-A) (Lab) => faculty=DKU, subject=FSD-1, lab=408-A, type=Practical
+                3. Old format: PHA-FSD_2-408-A(L) => faculty=PHA, subject=FSD_2, lab=408-A, type=Practical
+                4. Old format: PSK-DM-310 => faculty=PSK, subject=DM, room=310, type=Theory
                 """
                 if not cell_value or str(cell_value).strip() == "":
                     return None, None, None, None
+                
                 text = str(cell_value).strip()
+                
+                # Try new format first: DE (UMS) (301) or FSD-1 (DKU) (408-A) (Lab)
+                import re
+                
+                # Pattern for new format: Subject (Faculty) (Room/Lab) (Lab|L)?
+                new_pattern = r'^(.+?)\s*\(([^)]+)\)\s*\(([^)]+)\)(?:\s*\((?:Lab|L)\))?$'
+                match = re.match(new_pattern, text)
+                
+                if match:
+                    subject = match.group(1).strip()
+                    faculty = match.group(2).strip()
+                    room_lab = match.group(3).strip()
+                    
+                    # Check if it's a lab by looking for (Lab) or (L) suffix
+                    is_lab = text.endswith('(Lab)') or text.endswith('(L)')
+                    
+                    if is_lab:
+                        return faculty, subject, room_lab, "Practical"
+                    else:
+                        return faculty, subject, room_lab, "Theory"
+                
+                # Fallback to old format: PHA-FSD_2-408-A(L) or PSK-DM-310
                 parts = text.split("-")
-                if len(parts) < 3:
-                    return None, None, None, None
-                faculty = parts[0].strip()
-                subject = parts[1].strip()
-                after = "-".join(parts[2:]).strip()
-                if "(L" in after or "(l" in after:
-                    lab_name = after.split("(")[0].strip()
-                    return faculty, subject, lab_name, "Practical"
-                else:
-                    room_name = after.strip()
-                    return faculty, subject, room_name, "Theory"
+                if len(parts) >= 3:
+                    faculty = parts[0].strip()
+                    subject = parts[1].strip()
+                    after = "-".join(parts[2:]).strip()
+                    if "(L" in after or "(l" in after:
+                        lab_name = after.split("(")[0].strip()
+                        return faculty, subject, lab_name, "Practical"
+                    else:
+                        room_name = after.strip()
+                        return faculty, subject, room_name, "Theory"
+                
+                return None, None, None, None
 
             # ==== 2. Load Excel sheet ====
             wb = openpyxl.load_workbook(file)
@@ -1904,7 +1978,7 @@ def manage_timetable_type(request):
     # Get or create TimetableType for this department
     timetable_type, created = TimetableType.objects.get_or_create(
         department=department,
-        defaults={'slot_type': '1_hour'}
+        defaults={'slot_type': '2_hour'}
     )
     
     if request.method == 'POST':
@@ -2290,4 +2364,15 @@ def get_preferred_faculty_slots(department):
             print(f"DEBUG: Error processing preferred slots for {key}: {e}")
             continue
     return result
+
+
+# Excel Leave Management Views
+from .excel_leave_views import (
+    excel_leave_management_view,
+    excel_faculty_day_selection_view,
+    excel_leave_details_view,
+    excel_generate_temporary_timetable_view,
+    clear_excel_session_view,
+    download_temporary_timetable_pdf
+)
 

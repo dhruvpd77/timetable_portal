@@ -229,10 +229,9 @@ class TimetableType(models.Model):
     slot_type = models.CharField(
         max_length=10,
         choices=[
-            ('1_hour', '1 Hour Slot'),
-            ('2_hour', '2 Hour Pair Slot')
+            ('2_hour', '2 Hour Pair Slot'),
         ],
-        default='1_hour'
+        default='2_hour'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -243,6 +242,49 @@ class TimetableType(models.Model):
 
     def __str__(self):
         return f"{self.department.name} - {self.get_slot_type_display()}"
+
+
+class LeaveRequest(models.Model):
+    LEAVE_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    ]
+    
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    leave_date = models.DateField()
+    day_name = models.CharField(max_length=10)  # Monday, Tuesday, etc.
+    status = models.CharField(max_length=10, choices=LEAVE_STATUS_CHOICES, default='pending')
+    reason = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['faculty', 'day_name']
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.faculty.full_name} - {self.day_name} ({self.get_status_display()})"
+
+
+class LeaveReassignment(models.Model):
+    leave_request = models.ForeignKey(LeaveRequest, on_delete=models.CASCADE, related_name='reassignments')
+    original_faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='original_lectures')
+    replacement_faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='replacement_lectures')
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE)
+    subject = models.ForeignKey(CourseSpec, on_delete=models.CASCADE)
+    time_slot = models.CharField(max_length=20)
+    room_or_lab = models.CharField(max_length=100)
+    is_temporary = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['leave_request', 'batch', 'subject', 'time_slot']
+    
+    def __str__(self):
+        return f"{self.original_faculty.short_name} → {self.replacement_faculty.short_name} ({self.batch.name})"
 
 
 
