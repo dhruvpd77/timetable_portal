@@ -1,25 +1,22 @@
-# Deploying Timetable Portal on PythonAnywhere
+# Deploy Timetable Portal on PythonAnywhere
 
-This guide walks you through deploying the Timetable Portal Django app on PythonAnywhere.
+Step-by-step guide to deploy the Timetable Portal Django app on PythonAnywhere.
 
-## Prerequisites
-
-- PythonAnywhere account (free tier works)
-- GitHub repo: https://github.com/dhruvpd77/timetable_portal
+**Repo:** https://github.com/dhruvpd77/timetable_portal  
+**Your site will be:** `https://YOUR_USERNAME.pythonanywhere.com`
 
 ---
 
-## Step 1: Create a PythonAnywhere Account
+## 1. Create a PythonAnywhere account
 
-1. Go to [pythonanywhere.com](https://www.pythonanywhere.com) and sign up (free).
-2. Note your username – your site will be at `https://YOURUSERNAME.pythonanywhere.com`.
+1. Go to [pythonanywhere.com](https://www.pythonanywhere.com) and sign up (free tier is enough).
+2. Note your **username** — you will use it in paths and the WSGI file.
 
 ---
 
-## Step 2: Clone the Repository
+## 2. Connect to GitHub and get the code
 
-1. Open a **Bash** console on PythonAnywhere (Consoles tab → New console → Bash).
-2. Clone the repo:
+Open a **Bash** console (Consoles → New console → Bash), then run:
 
 ```bash
 cd ~
@@ -27,187 +24,186 @@ git clone https://github.com/dhruvpd77/timetable_portal.git
 cd timetable_portal
 ```
 
----
-
-## Step 3: Create Virtual Environment
+If the repo is **private**, use a Personal Access Token:
 
 ```bash
+git clone https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/dhruvpd77/timetable_portal.git
+```
+
+---
+
+## 3. Create and use a virtual environment
+
+**Option A – Virtualenv inside the project (recommended):**
+
+```bash
+cd ~/timetable_portal
 python3.10 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+**Option B – Use an existing virtualenv (e.g. `myenv`):**
+
+```bash
+cd ~/timetable_portal
+source ~/.virtualenvs/myenv/bin/activate
+pip install -r requirements.txt
+```
+
+Note the virtualenv path for the Web tab later:
+- Option A: `/home/YOUR_USERNAME/timetable_portal/venv`
+- Option B: `/home/YOUR_USERNAME/.virtualenvs/myenv`
+
 ---
 
-## Step 4: Generate Secret Key
-
-Run this to generate a secure secret key:
+## 4. Generate a Django secret key
 
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-Save the output – you'll add it in the WSGI file (Step 7).
+Copy the output; you will paste it into the WSGI file.
 
 ---
 
-## Step 5: Run Migrations & Create Superuser
+## 5. Database and superuser
 
 ```bash
 cd ~/timetable_portal
-source venv/bin/activate
+source venv/bin/activate   # or: source ~/.virtualenvs/myenv/bin/activate
 python manage.py migrate
 python manage.py createsuperuser
 ```
 
+Enter username, email, and password when asked.
+
 ---
 
-## Step 6: Collect Static Files
+## 6. Static and media files
 
 ```bash
 python manage.py collectstatic --noinput
+mkdir -p media
 ```
 
-This creates the `staticfiles/` folder. Note the full path, e.g. `/home/yourusername/timetable_portal/staticfiles`.
+If you get **Disk quota exceeded**, skip `collectstatic` for now; the app can still run. You can run it again after freeing space or upgrading.
 
 ---
 
-## Step 7: Configure the Web App
+## 7. Configure the Web app on PythonAnywhere
 
-1. Go to the **Web** tab on PythonAnywhere.
-2. Click **Add a new web app** (or use existing).
-3. Choose **Manual configuration** (not Django wizard).
-4. Select **Python 3.10**.
-5. Click **Next**.
+1. Open the **Web** tab.
+2. Click **Add a new web app** (or use an existing one).
+3. Choose **Manual configuration** (not the Django wizard).
+4. Select **Python 3.10** and finish.
 
-### Virtualenv
+### 7.1 Virtualenv
 
-- In "Virtualenv", click the path and enter: `/home/yourusername/timetable_portal/venv`
-- Or browse and select the `venv` folder.
+- In the **Virtualenv** section, enter the path you noted in step 3, e.g.  
+  `/home/YOUR_USERNAME/timetable_portal/venv`  
+  or  
+  `/home/YOUR_USERNAME/.virtualenvs/myenv`
 
-### WSGI Configuration
+### 7.2 WSGI file
 
 1. Click the **WSGI configuration file** link.
-2. Replace the contents with:
+2. **Replace the entire file** with the contents of `deploy/wsgi_pythonanywhere.py`, then replace:
+   - `YOUR_USERNAME` → your PythonAnywhere username (in all 4 places)
+   - `YOUR_SECRET_KEY` → the secret key from step 4
+
+Or paste this and edit the same placeholders:
 
 ```python
 import os
 import sys
 
-# Add your project directory to the sys.path
-path = '/home/yourusername/timetable_portal'
+path = '/home/YOUR_USERNAME/timetable_portal'
 if path not in sys.path:
     sys.path.insert(0, path)
 
-# Set environment variables for production
 os.environ['DJANGO_SETTINGS_MODULE'] = 'erp_timetable.settings'
-os.environ['DJANGO_SECRET_KEY'] = 'your-secret-key-from-step-4'
+os.environ['DJANGO_SECRET_KEY'] = 'YOUR_SECRET_KEY'
 os.environ['DJANGO_DEBUG'] = 'False'
-os.environ['DJANGO_ALLOWED_HOSTS'] = 'yourusername.pythonanywhere.com'
-os.environ['CSRF_TRUSTED_ORIGINS'] = 'https://yourusername.pythonanywhere.com'
+os.environ['DJANGO_ALLOWED_HOSTS'] = 'YOUR_USERNAME.pythonanywhere.com'
+os.environ['CSRF_TRUSTED_ORIGINS'] = 'https://YOUR_USERNAME.pythonanywhere.com'
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 ```
 
-**Important:** Replace `yourusername` with your PythonAnywhere username and `your-secret-key-from-step-4` with the key from Step 4.
+Save the file.
 
-### Static Files Mapping
+### 7.3 Static files (Web tab)
 
-In the Web tab, scroll to **Static files**:
+In **Static files**, add:
 
-| URL        | Directory                                      |
-|------------|-------------------------------------------------|
-| /static/   | /home/yourusername/timetable_portal/staticfiles |
-| /media/    | /home/yourusername/timetable_portal/media       |
+| URL       | Directory |
+|----------|-----------|
+| /static/ | /home/YOUR_USERNAME/timetable_portal/staticfiles |
+| /media/  | /home/YOUR_USERNAME/timetable_portal/media       |
 
-### Reload
+Use your real username; no trailing slash in the Directory field.
 
-Click the green **Reload** button.
+### 7.4 Reload
 
----
-
-## Step 8: Create Media Directory
-
-```bash
-mkdir -p ~/timetable_portal/media
-```
+Click the green **Reload** button for your web app.
 
 ---
 
-## Step 9: Initial Setup
+## 8. First use
 
-1. Visit `https://yourusername.pythonanywhere.com/`
-2. If you have no colleges/departments, go to `/admin-setup/` (after logging in) or create them via Django admin at `/admin/`.
-3. Create a college, department, and link a user to the department.
+1. Open `https://YOUR_USERNAME.pythonanywhere.com/`
+2. Log in with the superuser account you created.
+3. If needed, go to `/admin-setup/` or Django admin to create a college and department and link your user.
 
 ---
 
-## Updating the App
-
-When you push changes to GitHub:
+## Updating after code changes on GitHub
 
 ```bash
 cd ~/timetable_portal
-git pull
-source venv/bin/activate
+git pull origin master
+source venv/bin/activate   # or: source ~/.virtualenvs/myenv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput   # skip if disk quota error
 ```
 
-Then reload the web app in the Web tab.
+Then click **Reload** in the Web tab.
 
 ---
 
 ## Troubleshooting
 
-### pip install fails on pycairo / rlpycairo
+### ortools / Disk quota exceeded
 
-The project pins `svglib<1.6` to avoid pycairo compilation (which fails on PythonAnywhere). If you see pycairo build errors, ensure your `requirements.txt` has:
+The app works **without** ortools: reports, faculty, settings, etc. Only **Generate Timetable** needs ortools. If `pip install ortools` fails with disk quota:
 
-```
-svglib>=1.2.1,<1.6
-xhtml2pdf>=0.2.13
-```
-
-This keeps svglib at 1.5.x, which does not require rlpycairo/pycairo.
+- Free space: `pip cache purge`, remove old virtualenvs.
+- Or run without ortools and use the rest of the app; timetable generation will show an error with instructions.
 
 ### Static files not loading
+
 - Run `collectstatic` again.
-- Check the Static files mapping path in the Web tab.
-- Ensure the path has no trailing slash in the Directory field.
+- In the Web tab, check Static files URL and Directory (no trailing slash).
 
-### 500 Error
-- Check the **Error log** in the Web tab.
-- Verify `DJANGO_SETTINGS_MODULE` and paths in the WSGI file.
-- Ensure the virtualenv has all packages: `pip list`.
+### 500 error
 
-### CSRF / Login issues
-- Add `https://yourusername.pythonanywhere.com` to `CSRF_TRUSTED_ORIGINS`.
-- Ensure `DEBUG=False` in production.
+- Open the **Error log** in the Web tab.
+- Check that the WSGI path and `YOUR_USERNAME` / `YOUR_SECRET_KEY` are correct.
+- Confirm packages: `pip list` (with virtualenv active).
+
+### CSRF / login issues
+
+- In WSGI, `CSRF_TRUSTED_ORIGINS` must be `https://YOUR_USERNAME.pythonanywhere.com`.
+- With `DEBUG=False`, ensure the secret key and allowed hosts are set in WSGI.
 
 ### Database
-- The default SQLite database is at `~/timetable_portal/db.sqlite3`.
-- Back it up regularly: `cp db.sqlite3 db.sqlite3.backup`
 
-### ortools / Disk quota exceeded (PythonAnywhere free tier)
+- SQLite file: `~/timetable_portal/db.sqlite3`
+- Back up: `cp db.sqlite3 db.sqlite3.backup`
 
-The timetable solver requires **ortools** (~30 MB). On the free tier, disk quota may prevent installation:
+### svglib / pycairo
 
-```
-ERROR: Could not install packages due to an OSError: [Errno 122] Disk quota exceeded
-```
-
-**Options:**
-
-1. **Free disk space** – Remove caches, old virtualenvs, and unused files:
-   ```bash
-   pip cache purge
-   rm -rf ~/.cache/pip
-   # Remove any old venvs you don't use
-   ```
-
-2. **Upgrade PythonAnywhere** – A paid plan provides more disk space.
-
-3. **Run without ortools** – The app will load and work for reports, faculty management, etc. **Timetable generation** will show a clear error asking you to install ortools. Other features remain usable.
+The project pins `svglib==1.5.1` so you don’t need pycairo. If you see pycairo errors, ensure `requirements.txt` has `svglib==1.5.1` and reinstall.
